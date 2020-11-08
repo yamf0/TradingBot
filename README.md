@@ -52,21 +52,21 @@ Ticket: #9cw5eb
 
 1. in a Terminal instal the package for python virtual enviroment using pip
 ```js
-python -m pip instal virtual enviroment
+python -m pip install virtualenv
 ```
 *the above command depends on the enviroment
 2. set up the virtual enviroment in the folder named **pyvirtual**
 ```js
-python -m virtualenv pyvirtual
+python -m virtualenv venv
 ```
 3. Activate the virtual env in the terminal to be used for execution
 *For Linux
 ```js
-source pyvirtual/bin/activate
+source venv/bin/activate
 ```
 *For windows
 ```js
-pyvirtual/bin/activate
+venv/bin/activate
 ```
 
 ### * Requierements.txt
