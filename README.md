@@ -27,13 +27,13 @@ body
 footer
             
 * Type:
-** feat : new feature
-** fix : bug fix
-** docs : changes in documentation
-** style : formating and style changes
-** refactor : code changes for refactoring 
-** perf : performance increase implementation
-** test : testing capabilities change (unit testing)
+            * feat : new feature
+            * fix : bug fix
+            * docs : changes in documentation
+            * style : formating and style changes
+            * refactor : code changes for refactoring 
+            * perf : performance increase implementation
+            * test : testing capabilities change (unit testing)
 * Scope: a phrase describing parts of the code being affected by the commit (modules affected)
 * Subject: short description
 * Body (optional): further information of the change 
@@ -41,12 +41,13 @@ footer
 
 Example of a good commit message:
 
-----
+-
 feat(mktData): new method to get OCHL of coin
 
 method: OCHL(coin, pair, timeframe, start, end)
 Ticket: #9cw5eb
-----
+-
+
 ### * Virtual Enviroment
 
 1. in a Terminal instal the package for python virtual enviroment using pip
