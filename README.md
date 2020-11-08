@@ -15,6 +15,38 @@ A big thanks is due to the inital contributors of this project Hugo Armando, Ang
 
 ## Tutorials
 
+### * Commiting to the project
+
+Every development to the project must be dealt in a new branch created by the author for development, such branch can be worked only in the local repo, or if a long feature is being developed, then pushed to the repo. When the development is finished then a merge request will be issued and the contributors will accept such change if correct.
+
+Commit message convention is:
+
+type(scope): subject
+
+body
+footer
+            
+* Type:
+** feat : new feature
+** fix : bug fix
+** docs : changes in documentation
+** style : formating and style changes
+** refactor : code changes for refactoring 
+** perf : performance increase implementation
+** test : testing capabilities change (unit testing)
+* Scope: a phrase describing parts of the code being affected by the commit (modules affected)
+* Subject: short description
+* Body (optional): further information of the change 
+* Footer: to reference issues marked in ClickUp (tickets and/or tasks)
+
+Example of a good commit message:
+
+----
+feat(mktData): new method to get OCHL of coin
+
+method: OCHL(coin, pair, timeframe, start, end)
+Ticket: #9cw5eb
+----
 ### * Virtual Enviroment
 
 1. in a Terminal instal the package for python virtual enviroment using pip
