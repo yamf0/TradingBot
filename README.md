@@ -41,12 +41,12 @@ footer
 
 Example of a good commit message:
 
--
+
 feat(mktData): new method to get OCHL of coin
 
 method: OCHL(coin, pair, timeframe, start, end)
 Ticket: #9cw5eb
--
+
 
 ### * Virtual Enviroment
 
