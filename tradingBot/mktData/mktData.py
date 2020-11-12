@@ -1,8 +1,8 @@
-from mktDataBase import mktDataBase
+from tradingBot.mktData.coincap.mktDataCoincp import mktDataBaseCoinCp
 
 
 
-class mktData(mktDataBase):
+class mktDataCoincap(mktDataBaseCoincap):
     """
         Class that handles the communication with the external market API 
 
@@ -11,9 +11,11 @@ class mktData(mktDataBase):
 
     """
 
-    def __init__(self, apiChoice):
+    def __init__(self):
 
-        super().__init__(apiChoice)
+        super().__init__()
+
+
 
     
 

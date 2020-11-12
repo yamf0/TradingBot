@@ -1,3 +1,12 @@
+"""
+@package mktDataCoincap
+mktData implementation for Coincap API
+
+"""
+
+
+from mktDataINF import mktDataINF
+
 import requests
 
 #TODO import a file containing all available coins // all available fiats
@@ -9,7 +18,10 @@ symbolMap = {"crypto" : [
             {"symbol": "USDT", "name" : "us dollars"}
         ]}
 
-class mktDataBase():
+
+
+
+class mktDataBaseCoincp(mktDataINF):
     """
         Class that handles the communication with the external market API 
 
@@ -18,21 +30,16 @@ class mktDataBase():
 
     """
 
-    apisInfo = {
+    apiInfo = {
         "coincap" : { "url" : "https://api.coincap.io/v2", "functions" : [
             {"id" : "markets", "url" : "https://api.coincap.io/v2/markets"},
             {"id" : "OCHL", "url" : "https://api.coincap.io/v2/candles"},
             {"id" : "assets", "url" : "https://api.coincap.io/v2/assets"}
-        ]},
-        "messari" : { "url" : "", "functions" : []}
-        }
-    def __init__(self, apiChoice):
-        
-        self._apiName = apiChoice
-        self._apiUrl = self.apisInfo[apiChoice]["url"]
-        self._apiFunctions = self.apisInfo[apiChoice]["functions"]
-            
-    def _get(self, func= None, params= None):
+        ]}}
+    def __init__(self):
+        pass
+
+    def _makeRequest(self, func= None, params= None):
         """
             Method that makes a requests.get call to request the API for information
 
@@ -53,6 +60,7 @@ class mktDataBase():
         
         return  response.json()
 
+
     def checkConnection (self):
         """
             Method that sends a generic message to the API server to check for connection
@@ -61,7 +69,7 @@ class mktDataBase():
         params = {"payload" : "bictoin", "limit" : 1}
 
         #! SHOULD I PUT IT IN A TRY EXCEPT BLOCK???
-        res = self._get(func, params)
+        res = self._makeRequest(func, params)
 
         if not res:
             #TODO Logger connection with server down
@@ -71,7 +79,7 @@ class mktDataBase():
         return True
 
 
-    def getCurrentData (self, coin= None, pair=None, exchange="binance"):
+    def getCurData (self, coin= None, pair=None, exchange="binance"):
         """
             Method that gets the current price of a coin compared to pair
 
@@ -84,20 +92,14 @@ class mktDataBase():
                 json:   json with the information obtained
 
         """
+        if not self._checkCond(coin=coin, pair=pair):
+            return False
+
         #build Payload
         func = "markets"
         params = {"exchangeId" : exchange, "baseSymbol" : coin, "quoteSymbol" : pair}
-
-        if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
-            #TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
-            return False
-
-        if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
-                        [fiat["symbol"] for fiat in symbolMap["fiat"]]:
-            #TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
-            return False
             
-        res = self._get(func, params)
+        res = self._makeRequest(func, params)
 
         if not res:
             #TODO Logger connection with server down
@@ -106,7 +108,7 @@ class mktDataBase():
         #TODO Make logger message server connected
         return True
 
-    def _getInterval(self, timeframe=None):
+    def _getIntvl(self, timeframe=None):
         """
             Method that constructs in the correct way the interval needed for the API
 
@@ -128,7 +130,21 @@ class mktDataBase():
 
         return str(number) + timeInterval
 
+    def _checkCond(self, coin=None, pair=None):
+        """
+            Method that checks that coin Conditions are met
+            Coin requested does exists, pair requested does exist...
+        """
+        if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
+            #TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
+            return False
 
+        if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
+                        [fiat["symbol"] for fiat in symbolMap["fiat"]]:
+            #TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
+            return False
+        
+        return True
 
     def OCHLData(self, coin= None, pair=None, exchange="binance", timeframe=None, start=None, end=None):
         """
@@ -145,30 +161,21 @@ class mktDataBase():
                 json:   json with the information obtained
         """
 
-        timeframe = self._getInterval(timeframe)
+        timeframe = self._getIntvl(timeframe)
 
         if not timeframe:
             #TODO RAISE ERROR TimeInterval not in defined intervals
             return False
 
+        if not self._checkCond(coin=coin, pair=pair):
+            return False
+            
         #!build Payload CAN BE IN ANOTHER FUNCTION
         func = "OCHL"
         params = {"exchangeId" : exchange, "baseSymbol" : coin, "quoteSymbol" : pair,
                   "interval" : timeframe, "start": start, "end" : end}
 
-
-        if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
-            #TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
-            return False
-
-        if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
-                        [fiat["symbol"] for fiat in symbolMap["fiat"]]:
-            #TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
-            return False
-        
-        #! UNTIL HERE
-
-        res = self._get(func, params)
+        res = self._makeRequest(func, params)
 
         if not res:
             #TODO Logger connection with server down
@@ -176,3 +183,5 @@ class mktDataBase():
 
         #TODO Make logger message server connected
         return True    
+
+
