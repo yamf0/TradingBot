@@ -29,14 +29,11 @@ class mktDataINF(abc.ABC):
         pass
 
     @abc.abstractmethod       
-    def getCurrentData (self, coin= None, pair=None, exchange="binance"):
+    def getCurData (self, **kwargs):
         """
             Method that gets the current price of a coin compared to pair
 
             Variables
-                coin:           which coin price to obtain (e.g. BTC // ETH)
-                pair:           which pair coin to obtain the price for (e.g. USDT // EUR)
-                exchange:       which exchange to check the price from (e.g. binance // kraken)
             
             Return
                 json:   json with the information obtained
@@ -45,17 +42,11 @@ class mktDataINF(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def OCHLData(self, coin= None, pair=None, exchange="binance", timeframe=None, start=None, end=None):
+    def OCHLData(self, **kwargs):
         """
             Method that gets the OCHL data for a specific coin in a specified timeframe
             @Variables
-                coin: str                   which coin price to obtain (e.g. BTC // ETH)
-                pair: str                   which pair coin to obtain the price for (e.g. USDT // EUR)
-                timeframe: tuple            which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week")) #!PRONE TO CHANGE
-                start(optional): tuple      timestamp from which data starts (e.g. (10, 08, 2020) --> 
-                                            10th of AUG of 2020 (day, month, year)) 
-                end(optional): tuple        timestamp until which data ends (e.g. (10, 08, 2020) --> 
-                                            10th of AUG of 2020 (day, month, year))  
+
             @Return
                 json:   json with the information obtained
         """
@@ -68,5 +59,5 @@ class mktDataINF(abc.ABC):
             Coin requested does exists, pair requested does exist...
 
         """
-
+        pass
 

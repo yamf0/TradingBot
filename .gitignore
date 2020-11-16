@@ -1,2 +1,4 @@
 access_keys/*
 venv/*
+
+*/__pycache__/*

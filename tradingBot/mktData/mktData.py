@@ -1,8 +1,7 @@
-from tradingBot.mktData.coincap.mktDataCoincp import mktDataBaseCoinCp
+from tradingBot.mktData.mktDataCoincp import mktDataBaseCoincp
 
 
-
-class mktDataCoincap(mktDataBaseCoincap):
+class mktDataCoincap(mktDataBaseCoincp):
     """
         Class that handles the communication with the external market API 
 
@@ -17,7 +16,7 @@ class mktDataCoincap(mktDataBaseCoincap):
 
 
 
-    
+
 
 
 

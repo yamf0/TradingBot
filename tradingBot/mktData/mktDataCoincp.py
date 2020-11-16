@@ -1,11 +1,10 @@
 """
 @package mktDataCoincap
-mktData implementation for Coincap API
-
+mktData implementation for Coincap API, based in mktData interface
+@author Yael Martinez
 """
 
-
-from mktDataINF import mktDataINF
+from tradingBot.mktData.mktDataINF import mktDataINF
 
 import requests
 
@@ -23,11 +22,8 @@ symbolMap = {"crypto" : [
 
 class mktDataBaseCoincp(mktDataINF):
     """
-        Class that handles the communication with the external market API 
-
-        Methods:
-            __init__():
-
+        @class that handles the communication with the external market API 
+        @see mktDataINF
     """
 
     apiInfo = {
@@ -37,18 +33,17 @@ class mktDataBaseCoincp(mktDataINF):
             {"id" : "assets", "url" : "https://api.coincap.io/v2/assets"}
         ]}}
     def __init__(self):
-        pass
+        self._apiFunctions = self.apiInfo["coincap"]["functions"]
 
     def _makeRequest(self, func= None, params= None):
         """
-            Method that makes a requests.get call to request the API for information
+            @fn _makeRequest 
+            @breif A function that uses requests.get() call to request the API for information
 
-            Variables
-                func: str           API function to be called (mapped in self.apisInfo)
-                params: dict        parameters to pass with the request
-
-            return:
-                response:           request.response object
+            @param func API function to be called
+            @param params Parameters to pass with the request
+            @exception EXCEPTION response not OK
+            @return response  resonse object json
         """
         baseUrl = [item for item in self._apiFunctions if item.get("id") == func][0]["url"]
         response = requests.get(baseUrl, params = params)
@@ -79,7 +74,7 @@ class mktDataBaseCoincp(mktDataINF):
         return True
 
 
-    def getCurData (self, coin= None, pair=None, exchange="binance"):
+    def getCurData (self, **kwargs):
         """
             Method that gets the current price of a coin compared to pair
 
@@ -92,6 +87,13 @@ class mktDataBaseCoincp(mktDataINF):
                 json:   json with the information obtained
 
         """
+        #Make sure No error is given when not arguments are passed
+        methodVar = {"coin" : None, "pair" : None, "exchange" : "binance"}
+
+        methodVar.update(kwargs)
+
+        coin, pair, exchange, _= [methodVar[key] for key in methodVar.keys()]
+
         if not self._checkCond(coin=coin, pair=pair):
             return False
 
@@ -146,7 +148,7 @@ class mktDataBaseCoincp(mktDataINF):
         
         return True
 
-    def OCHLData(self, coin= None, pair=None, exchange="binance", timeframe=None, start=None, end=None):
+    def OCHLData(self, **kwargs):
         """
             Method that gets the OCHL data for a specific coin in a specified timeframe
             @Variables
@@ -160,6 +162,12 @@ class mktDataBaseCoincp(mktDataINF):
             @Return
                 json:   json with the information obtained
         """
+        #Make sure No error is given when not arguments are passed
+        methodVar = {"coin" : None, "pair" : None, "exchange" : "binance", "timeframe" : None , "start" : None, "end" : None}
+
+        methodVar.update(kwargs)
+
+        coin, pair, exchange, timeframe, start, end, _= [methodVar[key] for key in methodVar.keys()]
 
         timeframe = self._getIntvl(timeframe)
 
