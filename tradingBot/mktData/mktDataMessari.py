@@ -37,7 +37,7 @@ class mktDataBaseMessari(mktDataINF):
     def __init__(self):
         pass
 
-    def _makeRequest(self, func= None, params= None):
+    def _makeRequest(self, baseUrl= None, params= None):
         """
             Method that makes a requests.get call to request the API for information
 
@@ -49,7 +49,17 @@ class mktDataBaseMessari(mktDataINF):
                 response:           request.response object
         """
         baseUrl = [item for item in self.apiInfo if item.get("id") == func][0]["url"]
-        response = requests.get(baseUrl, params = params)
+        if func == "markets":
+            
+            pass
+        elif func == "OCHL":
+            
+            pass
+        else:
+            
+            pass
+
+        response = requests.get(baseUrl)
 
         if not response.ok:
             #TODO Make logger message critical failed request

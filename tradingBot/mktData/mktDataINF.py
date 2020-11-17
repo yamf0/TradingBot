@@ -8,7 +8,7 @@ class mktDataINF(abc.ABC):
         Methods:
     """
     @abc.abstractmethod       
-    def _makeRequest(self, func= None, params= None):
+    def _makeRequest(self, baseUrl = None, params= None):
         """
             Method that makes a requests.get call to request the API for information
 
