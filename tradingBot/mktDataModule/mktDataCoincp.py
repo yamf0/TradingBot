@@ -2,8 +2,10 @@
 # mktData implementation for Coincap API, based in mktData interface
 # @author Yael Martinez
 
+import sys
+sys.path.insert(0, r'')
 
-from mktDataINF import mktDataINF
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
 
 import requests
 import datetime
@@ -25,7 +27,8 @@ class mktDataBaseCoincp(mktDataINF):
     # @class mktDataBaseCoincp 
     # @see mktDataINF
     
-
+    ## @var apiInfo
+    # contains the Url to access different api calls
     apiInfo = {
         "coincap" : { "url" : "https://api.coincap.io/v2", "functions" : [
             {"id" : "markets", "url" : "https://api.coincap.io/v2/markets"},
@@ -290,6 +293,8 @@ class mktDataBaseCoincp(mktDataINF):
 
 
 if __name__ == "__main__":
+    
     o = mktDataBaseCoincp()
+    o.checkConnection()
     o.getCurData(coin="BTC",pair="USDT")
     o.OCHLData(coin="ETH", pair="USDT", interval=(1,"m"))

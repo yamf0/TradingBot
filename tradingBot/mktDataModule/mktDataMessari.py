@@ -5,7 +5,7 @@ mktData implementation for Coincap API
 """
 
 
-from mktDataINF import mktDataINF
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
 
 import requests
 
