@@ -1,4 +1,8 @@
-###LIBRARYS###
+## @package dataBaseAdpr
+# Data Base implementation using Google Drive API
+# @author Hugo Zepeda
+
+## Librarys
 from __future__ import print_function
 import pickle
 import os.path
@@ -12,24 +16,18 @@ import ast
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
 class dataBaseAdpr():
-    """
-        This class will upload and download files from Drive
-    """  
-    # If modifying these scopes, delete the file token.pickle.
+    ## Data Base class
+    # @class dataBaseAdpr 
+    # @brief This class handles the update of the data base in Google Drive
 
     def __init__(self):
-        """
-            Authenticate Login for first time, then ist automatically
-        """   
+        ## @fn __init__ 
+        # @brief  Class constructor in charge of autentication process for the Google Drive API
         creds = None
-        # The file token.pickle stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 creds = pickle.load(token)
                 print('Taking credentials')
-        # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
@@ -38,24 +36,25 @@ class dataBaseAdpr():
                     'credentials.json', SCOPES)
                 print('Creating credentials')
                 creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
+                print('Credentials safe for next run')
         self.drive_service = build('drive', 'v3', credentials=creds)
-
-        ###TESTING BELOW###
+        
         '''
+        ###TESTING BELOW###
         searchKey = 'OCHL'
         pathFile = 'jsonFolder/folderIds.json'
         folderID = self.keySearchValue(searchKey,pathFile)
         fileName = 'dbBITC_USDT_' + searchKey + '.json'
         pathFile = 'jsonFolder/' + fileName
         self.createUpdateFile(fileName, pathFile, folderID)
-        
         self.downloadFiles()
         '''
 
     def updateFiles(self):
+        ## @fn updateFiles 
+        # @brief public method which handles the update of all the files to the data base on the cloud
         with open('jsonFolder/documentIDs.json','r') as f:
             dictIds = json.load(f)
             for key in dictIds:
@@ -68,6 +67,8 @@ class dataBaseAdpr():
                                                     fileId=dictIds[key]).execute()
 
     def downloadFiles(self):
+        ## @fn downloadFiles 
+        # @brief public method which handles the download of all the files to the local data base of the developer
         with open('jsonFolder/documentIDs.json','r') as f:
             dictIds = json.load(f)
             for key in dictIds:
@@ -93,6 +94,11 @@ class dataBaseAdpr():
                 break
     '''
     def createUpdateFile(self, f_nameFile, f_pathFile, f_folderID):
+        ## @fn createUpdateFile 
+        # @brief public method for the creation of a new file
+        # @param f_nameFile File name to be created on the Drive cloud
+        # @param f_pathFile Local path of the file to be upload
+        # @param f_folderID Previously known folderID where the file is to be located 
         file_metadata = {
             'name': f_nameFile,
             'parents': [f_folderID]
@@ -112,14 +118,24 @@ class dataBaseAdpr():
             json.dump(dictIds,f)
 
     def keySearchValue(self, f_searchKeys, f_pathFile):
+        ## @fn keySearchValue 
+        # @brief public method to look up for a folderID
+        # @param f_searchKeys Looking up key, which sets to the data look
+        # @param f_pathFile Local path of the file folderIds.json
+        # @return folderID  folderID on the cloud
         with open(f_pathFile) as dictIds:
             dictIds = json.load(dictIds)
             for key in dictIds: 
-                value = self.keySearch(f_searchKeys, dictIds[key])
-                return value
+                folderID = self.__keySearch(f_searchKeys, dictIds[key])
+                return folderID
 
     
-    def keySearch(self, f_searchKeys, f_dictIds):
+    def __keySearch(self, f_searchKeys, f_dictIds):
+        ## @fn keySearchValue 
+        # @brief private method to do recursion on a dictionary
+        # @param f_searchKeys Looked up key
+        # @param f_dictIds Provided dictionary
+        # @return f_dictIds[key] returns the value of the search key 
         for key in f_dictIds:
             if key != f_searchKeys:
                 if isinstance(f_dictIds[key],dict):
