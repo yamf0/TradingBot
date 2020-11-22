@@ -1,8 +1,7 @@
-"""
-@package mktDataCoincap
-mktData implementation for Coincap API, based in mktData interface
-@author Yael Martinez
-"""
+## @package mktDataCoincap
+# mktData implementation for Coincap API, based in mktData interface
+# @author Yael Martinez
+
 
 from mktDataINF import mktDataINF
 
@@ -22,10 +21,10 @@ symbolMap = {"crypto" : [
 
 
 class mktDataBaseCoincp(mktDataINF):
-    """
-    @class mktDataBaseCoincp 
-    @see mktDataINF
-    """
+    ## Coincap class
+    # @class mktDataBaseCoincp 
+    # @see mktDataINF
+    
 
     apiInfo = {
         "coincap" : { "url" : "https://api.coincap.io/v2", "functions" : [
@@ -33,20 +32,23 @@ class mktDataBaseCoincp(mktDataINF):
             {"id" : "OCHL", "url" : "https://api.coincap.io/v2/candles"},
             {"id" : "assets", "url" : "https://api.coincap.io/v2/assets"}
         ]}}
+        
     def __init__(self):
         self._apiFunctions = self.apiInfo["coincap"]["functions"]
 
     def _makeRequest(self, baseUrl= None, params= None):
-        """
-        @fn _makeRequest 
-        @breif Method that uses requests.get() call to request the API for information
-        @param baseUrl API function to be called
-        @param params Parameters to pass with the request
-        @exception EXCEPTION response not OK
-        @return response  resonse object json
-        """
-        baseUrl = [item for item in self._apiFunctions if item.get("id") == baseUrl][0]["url"]
-        response = requests.get(baseUrl, params = params)
+
+        ## @fn _makeRequest 
+        # @brief Method that uses requests.get() call to request the API for information
+        # @param baseUrl API function to be called
+        # @param params Parameters to pass with the request
+        # @exception EXCEPTION response not OK
+        # @return response  resonse object json
+
+        baseUrl = [item for item in self._apiFunctions if item.get(
+            "id") == baseUrl][0]["url"]
+        response = requests.get(baseUrl, params=params)
+
 
         if not response.ok:
             #TODO Make logger message critical failed request
@@ -57,12 +59,12 @@ class mktDataBaseCoincp(mktDataINF):
         return  response.json()
     
     def _getIntvl(self, timeframe=None):
-        """
-        @fn _getIntvl 
-        @brief Method that constructs in the correct way the interval needed for the API
-        @param timeframe which time frame the data is to be obtained (e.g. (1, "min")//(1, "day"))
-        @return interval constructed as a letter and the number (e.g., d1 = 1 day)
-        """
+    
+        ## @fn _getIntvl 
+        # @brief Method that constructs in the correct way the interval needed for the API
+        # @param timeframe which time frame the data is to be obtained (e.g. (1, "min")//(1, "day"))
+        # @return interval constructed as a letter and the number (e.g., d1 = 1 day)
+     
         if not isinstance(timeframe, tuple):
             #TODO RAISE ERROR TIME FRAME IS NOT A TUPLE
               return False
@@ -73,18 +75,19 @@ class mktDataBaseCoincp(mktDataINF):
             return False
         timeInterval = timeInterval[0]
 
-        return  timeInterval + str(number) 
+        return timeInterval + str(number)
 
     def _checkCond(self, **kwargs):
-        """
-        @fn _checkCond
-        @brief Method that checks that coin Conditions are met 
-                Coin requested does exists, pair requested does exist.
-        @param coin coin requested
-        @param pair pair requested
-        @exception EXCEPTION coin//pair not in available coins
-        @return boolean   
-        """
+        
+        
+        ## @fn _checkCond
+        # @brief Method that checks that coin Conditions are met 
+        #         Coin requested does exists, pair requested does exist.
+        # @param coin coin requested
+        # @param pair pair requested
+        # @exception EXCEPTION coin//pair not in available coins
+        # @return boolean   
+        
         coin, pair = [val for val in kwargs.values()]
 
         if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
@@ -98,12 +101,12 @@ class mktDataBaseCoincp(mktDataINF):
         
         return True
     def _convertTimestamp(self, timestamp=None):
-        """
-        @fn _convertTimestamp
-        @brief Methot that converts UNIX timestamp to DD-MM-YYYY_HH-MM-SS.00000 format
-        @param timestamp timestampt to convert
-        @return time converted timestamp
-        """
+        
+        ## @fn _convertTimestamp
+        # @brief Methot that converts UNIX timestamp to DD-MM-YYYY_HH-MM-SS.00000 format
+        # @param timestamp timestampt to convert
+        # @return time converted timestamp
+        
         timestamp = datetime.datetime.fromtimestamp(timestamp/1000)\
                                     .strftime('%d-%m-%Y--%H-%M-%S.%f')
                             
@@ -111,13 +114,13 @@ class mktDataBaseCoincp(mktDataINF):
 
 
     def _parseResponse(self, func=None, info=None):
-        """
-        @fn _parseResponse 
-        @brief Method that parse the response in a defined json structure
-        @param func the type of json to be parsed
-        @param info json to be parsed
-        @return res the json produced 
-        """
+        
+        ## @fn _parseResponse 
+        # @brief Method that parse the response in a defined json structure
+        # @param func the type of json to be parsed
+        # @param info json to be parsed
+        # @return res the json produced 
+        
         if func == "getCurData":
             data = info["data"][0]
             exchange = data["exchangeId"]
@@ -169,11 +172,11 @@ class mktDataBaseCoincp(mktDataINF):
             return res
 
     def checkConnection (self):
-        """
-        @fn checkConnection Method that sends a generic message to the API server to check for connection
-        @brief makes call to API and expects return json
-        @return boolean
-        """
+        
+        ## @fn checkConnection 
+        # @brief Method that sends a generic message to the API server to check for connection
+        # @return boolean
+        
         func = "assets"
         params = {"payload" : "bictoin", "limit" : 1}
 
@@ -189,20 +192,19 @@ class mktDataBaseCoincp(mktDataINF):
 
 
     def getCurData (self, **kwargs):
-        """
-        @fn gerCurData
-        @brief Method that gets the current price of a coin compared to pair
-
-        Uses method _makeRequest and _cehckCond
-
-        @param coin which coin price to obtain (e.g. BTC // ETH)
-        @param pair which pair coin to obtain the price for (e.g. USDT // EUR)
-        @param exchange which exchange to check the price from (e.g. binance // kraken)
         
-        @see _makeRequest, _checkCond
-        @return json with the information obtained
+        ## @fn getCurData
+        # @brief Method that gets the current price of a coin compared to pair
+        #
+        # Uses method _makeRequest and _cehckCond
+        #
+        # @param coin which coin price to obtain (e.g. BTC // ETH)
+        # @param pair which pair coin to obtain the price for (e.g. USDT // EUR)
+        # @param exchange which exchange to check the price from (e.g. binance // kraken)
+        # @see _makeRequest, _checkCond
+        # @return json with the information obtained
 
-        """
+        
         #Make sure No error is given when not arguments are passed
         methodVar = {"coin" : "BTC", "pair" : "USDT", "exchange" : "binance"}
 
@@ -230,23 +232,23 @@ class mktDataBaseCoincp(mktDataINF):
 
 
     def OCHLData(self, **kwargs):
-        """
-        @fn OCHLData
-        @brief Method that gets the OCHL data for a specific coin in a specified interval
-
-        Uses method _makeRequest and _cehckCond
-
-        @param coin which coin price to obtain (e.g. BTC // ETH)
-        @param pair which pair coin to obtain the price for (e.g. USDT // EUR)
-        @param interval which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week"))
-        @param start (optional) timestamp from which data starts (e.g. (10, 08, 2020) --> 
-                                        10th of AUG of 2020 (day, month, year)) 
-        @param end (optional) timestamp until which data ends (e.g. (10, 08, 2020) --> 
-                                        10th of AUG of 2020 (day, month, year))  
-
-        @exception EXCEPTION time interval is not permited
-        @return json with the information obtained
-        """
+        
+        ## @fn OCHLData
+        # @brief Method that gets the OCHL data for a specific coin in a specified interval
+        #
+        # Uses method _makeRequest and _cehckCond
+        #
+        # @param coin which coin price to obtain (e.g. BTC // ETH)
+        # @param pair which pair coin to obtain the price for (e.g. USDT // EUR)
+        # @param interval which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week"))
+        # @param start (optional) timestamp from which data starts (e.g. (10, 08, 2020) --> 
+        #                                 10th of AUG of 2020 (day, month, year)) 
+        # @param end (optional) timestamp until which data ends (e.g. (10, 08, 2020) --> 
+        #                                 10th of AUG of 2020 (day, month, year))  
+        #
+        # @exception EXCEPTION time interval is not permited
+        # @return json with the information obtained
+        
         #Make sure No error is given when not arguments are passed
         methodVar = {"coin" : "bitcoin", "pair" : "tether", "exchange" : "binance", "interval" : None , "start" : None, "end" : None}
 
