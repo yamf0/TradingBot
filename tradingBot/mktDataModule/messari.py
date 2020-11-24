@@ -18,3 +18,8 @@ url = "https://data.messari.io/api/v1/markets/binance-btc-usdt/metrics/price/tim
 
 response1 = requests.get(url)
 response1 = json.loads(response1.text)
+
+
+with open("example.json", "a") as f:
+        json.dump(response,f,indent=2, separators=(",",":"))
+        json.dump(response1,f,indent=2, separators=(",",":"))

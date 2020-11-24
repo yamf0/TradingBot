@@ -8,7 +8,7 @@ class mktDataINF(abc.ABC):
         Methods:
     """
     @abc.abstractmethod       
-    def _makeRequest(self, baseUrl = None, params= None):
+    def _makeRequest(self, baseUrl= None, params= None):
         """
             Method that makes a requests.get call to request the API for information
 
@@ -58,6 +58,15 @@ class mktDataINF(abc.ABC):
             Method that gets the arguments passed in to a method called and checks that conditions are met
             Coin requested does exists, pair requested does exist...
 
+        """
+        pass
+
+    @abc.abstractmethod
+    def _parseResponse(self, func=None, info=None):
+        """
+            @fn _parseResponse gets a function name and parse the response in a defined json structure
+            @param func the type of json to be parsed
+            @return res the json produced 
         """
         pass
 

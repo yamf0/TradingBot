@@ -1,0 +1,13 @@
+{   
+    "exchangeId": "NOT THAT IMPORTANT SINCE WE DIDN THE CALL, THIS WILL NOT BE SAVED INTO A JSON, ONLY WHAT IS INSIDE THE DATA []",
+    "data":[
+        {
+            "coin" : "",
+            "pair" : "",
+            "price" : "",
+            "volume24Hr" : "",
+            "percentChangeLast24" : "",
+            "timestamp" : "DD-MM-YYYY--HH:MM:SS.000000"
+        }
+    ]
+}

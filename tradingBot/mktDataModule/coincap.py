@@ -14,10 +14,10 @@ from time import sleep, ctime
 url = "https://api.coincap.io/v2"
 url = "https://api.coincap.io/v2/assets"
 url = "https://api.coincap.io/v2/assets"
-#url = "https://api.coincap.io/v2/assets?ids=bitcoin"
+url = "https://api.coincap.io/v2/assets?ids=bitcoin"
 
 ##GET INFO OF DETERMINED COIN
-#url = "https://api.coincap.io/v2/assets/bitcoin"
+url = "https://api.coincap.io/v2/assets/bitcoin"
 
 ##GET HISTORY OF ONE COIN  
 #url = "https://api.coincap.io/v2/assets/ethereum/history?interval=m1"
@@ -32,7 +32,7 @@ url = "https://api.coincap.io/v2/assets"
 
 
 ##GET HISTORICAL CANDLES
-#url = "https://api.coincap.io/v2/candles?exchange=binance&interval=d1&baseId=ethereum&quoteId=tether"
+#url = "https://api.coincap.io/v2/candles?exchange=binance&interval=m1&baseId=bitcoin&quoteId=tether"
 ##GET HISTORICAL FOR LOW INTERVALS SINCE " YEARS BACK"
 #url = "https://api.coincap.io/v2/candles?exchange=binance&interval=m1&baseId=ethereum&quoteId=bitcoin&start=1540598400000&end=1540771200000"
 
