@@ -27,13 +27,7 @@ class mktDataBaseMessari(mktDataINF):
             __init__():
 
     """
-
-    apiInfo = {
-        "messari" : { "url" : "https://data.messari.io/v2", "functions" : [
-            {"id" : "markets", "url" : "https://data.messari.io/api/v1/markets/"},
-            {"id" : "OCHL", "url" : "https://data.messari.io/api/v1/assets/{assetKey}/metrics/{metricID}/time-series"},
-            {"id" : "assets", "url" : "https://data.messari.io/api/v1/assets/btc/metrics/market-data"}
-        ]}}
+    
     def __init__(self):
         pass
 
@@ -48,18 +42,7 @@ class mktDataBaseMessari(mktDataINF):
             return:
                 response:           request.response object
         """
-        baseUrl = [item for item in self.apiInfo if item.get("id") == func][0]["url"]
-        if func == "markets":
-            
-            pass
-        elif func == "OCHL":
-            
-            pass
-        else:
-            
-            pass
-
-        response = requests.get(baseUrl)
+        response = requests.get(baseUrl, params)
 
         if not response.ok:
             #TODO Make logger message critical failed request
@@ -73,11 +56,11 @@ class mktDataBaseMessari(mktDataINF):
         """
             Method that sends a generic message to the API server to check for connection
         """
-        func = "assets"
-        params = {"payload" : "bictoin", "limit" : 1}
+        baseUrl = "https://data.messari.io/api/v1/assets/eth/metrics/market-data"
+        params = None
 
         #! SHOULD I PUT IT IN A TRY EXCEPT BLOCK???
-        res = self._makeRequest(func, params)
+        res = self._makeRequest(baseUrl, params)
 
         if not res:
             #TODO Logger connection with server down
@@ -87,28 +70,32 @@ class mktDataBaseMessari(mktDataINF):
         return True
 
 
-    def getCurData (self, coin= None, pair=None, exchange="binance"):
+    def getCurData (self, **kwargs):
         """
             Method that gets the current price of a coin compared to pair
 
             Variables
-                coin:           which coin price to obtain (e.g. BTC // ETH)
-                pair:           which pair coin to obtain the price for (e.g. USDT // EUR)
+                coin: str                   which coin price to obtain (e.g. btc // eth)
+                pair: str                   which pair coin to obtain the price for (e.g. usdt // eur)
                 exchange:       which exchange to check the price from (e.g. binance // kraken)
             
             Return
                 json:   json with the information obtained
 
         """
+        methodVar = {"coin" : None, "exchange" : "binance"}
+
+        methodVar.update(kwargs)
+
+        coin, exchange, _= [methodVar[key] for key in methodVar.keys()]
         
-        if not self._checkCond(coin=coin, pair=pair):
+        if not self._checkCond(coin = coin, pair = None):
             return False
 
-        #build Payload
-        func = "markets"
-        params = {"exchangeId" : exchange, "baseSymbol" : coin, "quoteSymbol" : pair}
-            
-        res = self._makeRequest(func, params)
+        #build baseUrl
+        params = None
+        baseUrl = "https://data.messari.io/api/v1/assets/"+coin+"/metrics/market-data"    
+        res = self._makeRequest(baseUrl, params)
 
         if not res:
             #TODO Logger connection with server down
@@ -139,36 +126,44 @@ class mktDataBaseMessari(mktDataINF):
 
         return str(number) + timeInterval
 
-    def _checkCond(self, coin=None, pair=None):
+    def _checkCond(self, **kwargs):
         """
             Method that checks that coin Conditions are met
             Coin requested does exists, pair requested does exist...
         """
+        coin, pair, _= [kwargs[key] for key in kwargs.keys()]
+        
         if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
             #TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
             return False
-
-        if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
-                        [fiat["symbol"] for fiat in symbolMap["fiat"]]:
-            #TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
-            return False
-        
+        if pair == None:
+            pass
+        else:
+            if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
+                            [fiat["symbol"] for fiat in symbolMap["fiat"]]:
+                #TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
+                return False   
         return True
 
-    def OCHLData(self, coin= None, pair=None, exchange="binance", timeframe=None, start=None, end=None):
+    def OCHLData(self, **kwargs):
         """
             Method that gets the OCHL data for a specific coin in a specified timeframe
             @Variables
-                coin: str                   which coin price to obtain (e.g. BTC // ETH)
-                pair: str                   which pair coin to obtain the price for (e.g. USDT // EUR)
+                coin: str                   which coin price to obtain (e.g. btc // eth)
+                pair: str                   which pair coin to obtain the price for (e.g. usdt // eur)
                 timeframe: tuple            which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week")) #!PRONE TO CHANGE
-                start(optional): tuple      timestamp from which data starts (e.g. (10, 08, 2020) --> 
-                                            10th of AUG of 2020 (day, month, year)) 
-                end(optional): tuple        timestamp until which data ends (e.g. (10, 08, 2020) --> 
-                                            10th of AUG of 2020 (day, month, year))  
+                start(optional): tuple      timestamp from which data starts (e.g. (2020-08-10) --> 
+                                            10th of AUG of 2020 (year-month-day)) 
+                end(optional): tuple        timestamp until which data ends (e.g. (2020-08-10) --> 
+                                            10th of AUG of 2020 (year-month-day))  
             @Return
                 json:   json with the information obtained
         """
+        methodVar = {"coin" : None, "pair" : None, "exchange" : "binance", "timeframe" : None , "start" : None, "end" : None}
+
+        methodVar.update(kwargs)
+
+        coin, pair, exchange, timeframe, start, end, _= [methodVar[key] for key in methodVar.keys()]
 
         timeframe = self._getIntvl(timeframe)
 
@@ -179,12 +174,11 @@ class mktDataBaseMessari(mktDataINF):
         if not self._checkCond(coin=coin, pair=pair):
             return False
             
-        #!build Payload CAN BE IN ANOTHER FUNCTION
-        func = "OCHL"
-        params = {"exchangeId" : exchange, "baseSymbol" : coin, "quoteSymbol" : pair,
-                  "interval" : timeframe, "start": start, "end" : end}
+        #!build baseUrl
+        baseUrl = "https://data.messari.io/api/v1/markets/"+exchange+"-"+coin+"-"+pair+"/metrics/price/time-series"
+        params = {"start": start, "end" : end, "interval" : timeframe}
 
-        res = self._makeRequest(func, params)
+        res = self._makeRequest(baseUrl, params)
 
         if not res:
             #TODO Logger connection with server down
