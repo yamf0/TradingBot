@@ -78,7 +78,7 @@ class TestmktDataBaseCoincp(TestCase):
     def test_checkCond_coin_not_found(self):
         
         ## @fn test_checkCond_coin_not_found
-        # test _cehckCond method with a non existing coin
+        # test _checkCond method with a non existing coin
 
         ret = self.mktApi._checkCond(coin ="ADA", pair="BTC")
 
@@ -87,7 +87,8 @@ class TestmktDataBaseCoincp(TestCase):
     def test_checkCond_coin_found(self):
 
         ## @fn test_checkCond_coin_not_found
-        # test _cehckCond method with an existing coin
+        # test _checkCond method with an existing coin
+
         ret = self.mktApi._checkCond(coin ="BTC", pair="ETH")
 
         self.assertTrue(ret, "Coin not found in dict")

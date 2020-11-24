@@ -103,7 +103,8 @@ class mktDataBaseCoincp(mktDataINF):
             return False
         
         return True
-    def _convertTimestamp(self, timestamp=None):
+
+    """ def _convertTimestamp(self, timestamp=None):
         
         ## @fn _convertTimestamp
         # @brief Methot that converts UNIX timestamp to DD-MM-YYYY_HH-MM-SS.00000 format
@@ -113,7 +114,7 @@ class mktDataBaseCoincp(mktDataINF):
         timestamp = datetime.datetime.fromtimestamp(timestamp/1000)\
                                     .strftime('%d-%m-%Y--%H-%M-%S.%f')
                             
-        return timestamp
+        return timestamp"""
 
 
     def _parseResponse(self, func=None, info=None):
@@ -132,7 +133,7 @@ class mktDataBaseCoincp(mktDataINF):
             price = data["priceQuote"]
             volume24Hr = data["volumeUsd24Hr"]
             percentChangeLast24 = data["percentExchangeVolume"]
-            timestamp = self._convertTimestamp(data["updated"])
+            timestamp = data["updated"]
             
             res = {
                 "exchangeId" : exchange,
@@ -159,7 +160,7 @@ class mktDataBaseCoincp(mktDataINF):
             data = info["data"]
             for d in data:
 
-                timestamp = self._convertTimestamp(d["period"])
+                timestamp = d["period"]
                 dDict = {
                         "open" : d["open"],
                         "close" : d["close"],
@@ -269,8 +270,8 @@ class mktDataBaseCoincp(mktDataINF):
         if not self._checkCond(coin=coin, pair=pair):
             return False
 
-        coin = [name["id"] for coinType in symbolMap.values() for name in coinType if name["symbol"] == coin] 
-        pair = [name["id"] for coinType in symbolMap.values() for name in coinType if name["symbol"] == pair] 
+        coin = [name["id"] for coinType in symbolMap.values() for name in coinType if name["symbol"] == coin][0] 
+        pair = [name["id"] for coinType in symbolMap.values() for name in coinType if name["symbol"] == pair][0]
 
         
             
