@@ -9,16 +9,9 @@ from tradingBot.mktDataModule.mktDataINF import mktDataINF
 
 import requests
 import datetime
+import os
 
-#TODO import a file containing all available coins // all available fiats
-symbolMap = {"crypto" : [
-            {"symbol" : "BTC", "name" : "bitcoin", "id" : "bitcoin"},
-            {"symbol" : "ETH", "name" : "ethereum", "id" : "ethereum"}
-            ],
-        "fiat": [
-            {"symbol": "USDT", "name" : "us dollars", "id" : "tether"}
-        ]}
-
+from tradingBot.resources.globals import symbolMap
 
 
 
@@ -38,6 +31,8 @@ class mktDataBaseCoincp(mktDataINF):
         
     def __init__(self):
         self._apiFunctions = self.apiInfo["coincap"]["functions"]
+        self.path = os.path.dirname(os.path.abspath(__file__))
+
 
     def _makeRequest(self, baseUrl= None, params= None):
 
@@ -124,7 +119,7 @@ class mktDataBaseCoincp(mktDataINF):
         # @param func the type of json to be parsed
         # @param info json to be parsed
         # @return res the json produced 
-        
+        api = "coincap"
         if func == "getCurData":
             data = info["data"][0]
             exchange = data["exchangeId"]
@@ -135,7 +130,9 @@ class mktDataBaseCoincp(mktDataINF):
             percentChangeLast24 = data["percentExchangeVolume"]
             timestamp = data["updated"]
             
+            
             res = {
+                "calledAPI": api,
                 "exchangeId" : exchange,
                 "data": [
                 {
@@ -172,7 +169,7 @@ class mktDataBaseCoincp(mktDataINF):
                 res["data"].append(dDict)
             res["start"] = res["data"][-1]["timestamp"]  
             res["end"] = res["data"][0]["timestamp"]  
-
+            res["calledAPI"] = api
             return res
 
     def checkConnection (self):

@@ -8,14 +8,7 @@ import datetime
 import requests
 
 #TODO import a file containing all available coins // all available fiats
-symbolMap = {"crypto" : [
-            {"symbol" : "btc", "name" : "bitcoin"},
-            {"symbol" : "eth", "name" : "ethereum"}
-            ],
-        "fiat": [
-            {"symbol": "usdt", "name" : "us dollars"},
-            {"symbol": "eur", "name" : "euros"}
-        ]}
+from tradingBot.resources.globals import symbolMap
 
 
 class mktDataBaseMessari(mktDataINF):
