@@ -8,18 +8,8 @@ import datetime
 import requests
 
 #TODO import a file containing all available coins // all available fiats
-<<<<<<< HEAD
-symbolMap = {"crypto" : [
-            {"symbol" : "btc", "name" : "bitcoin"},
-            {"symbol" : "eth", "name" : "ethereum"}
-            ],
-        "fiat": [
-            {"symbol": "usdt", "name" : "us dollars"},
-            {"symbol": "eur", "name" : "euros"},
-        ]}
-=======
+
 from tradingBot.resources.globals import symbolMap
->>>>>>> 4109ba7b0ec86d9b4cec7f2fb6d0116659800b6e
 
 
 class mktDataBaseMessari(mktDataINF):
@@ -214,7 +204,7 @@ class mktDataBaseMessari(mktDataINF):
 
         #build baseUrl
         params = None
-        baseUrl = "https://data.messari.io/api/v1/assets/"+coin+"/metrics/market-data"    
+        baseUrl = "https://data.messari.io/api/v1/assets/"+coin.lower()+"/metrics/market-data"    
         res = self._makeRequest(baseUrl, params)
 
         if not res:
@@ -256,7 +246,7 @@ class mktDataBaseMessari(mktDataINF):
             return False
             
         #!build baseUrl
-        baseUrl = "https://data.messari.io/api/v1/markets/"+exchange+"-"+coin+"-"+pair+"/metrics/price/time-series"
+        baseUrl = "https://data.messari.io/api/v1/markets/"+exchange.lower()+"-"+coin.lower()+"-"+pair.lower()+"/metrics/price/time-series"
         params = {"start": start, "end" : end, "interval" : timeframe}
 
         res = self._makeRequest(baseUrl, params)
@@ -275,5 +265,5 @@ if __name__ == "__main__":
     
     o = mktDataBaseMessari()
     o.checkConnection()
-    o.getCurData(coin="btc",pair="usdt")
-    o.OCHLData(coin="eth", pair="usdt", start = "2020-08-09", end = "2020-08-10", timeframe=(1,"day"))
+    o.getCurData(coin="BTC",pair="USDT")
+    o.OCHLData(coin="ETH", pair="USDT", start = "2020-08-09", end = "2020-08-10", timeframe=(1,"day"))
