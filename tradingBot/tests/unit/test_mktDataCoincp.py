@@ -11,7 +11,7 @@ sys.path.insert(0, r'')
 
 from tradingBot.mktDataModule.mktData import mktDataCoincp
 
-class TestmktDataBaseCoincp(TestCase):
+class TestmktDataBase00Coincp(TestCase):
 
     ## Tests for coincap API
     # @class TestmktDataBaseCoincp
@@ -199,6 +199,55 @@ class TestmktDataBaseCoincp(TestCase):
 
         self.assertFalse(res)
 
+    @patch("tradingBot.mktDataModule.mktDataCoincp.mktDataBaseCoincp._makeRequest")
+    def test_OCHLData_makeRequest_fail(self, mock_makeRequest):
+        coin = "BTC"
+        pair = "ETH"
+        interval = (1,"d")
+
+        mock_makeRequest.return_value = False
+
+        res = self.mktApi.OCHLData(coin=coin, pair=pair, interval=interval)
+
+        self.assertFalse(res)
+        self.assertTrue(mock_makeRequest.called)
+
+    @patch("tradingBot.mktDataModule.mktDataCoincp.mktDataBaseCoincp._makeRequest")
+    def test_OCHLData_pass(self, mock_makeRequest):
+        coin = "BTC"
+        pair = "USDT"
+        interval = (1,"d")
+        expectedRes={
+            "start" :1606509660000,
+            "end": 1606509660000,
+            "interval" : "d1",
+            "calledAPI" : "coincap",
+            "data": [
+                {
+                    "open": "17072.2300000000000000",
+                    "high": "17080.0000000000000000",
+                    "low": "17056.9800000000000000",
+                    "close": "17062.5400000000000000",
+                    "volume": "54.5517220000000000",
+                    "timestamp": 1606509660000
+                }]
+        }
+
+        mock_makeRequest.return_value = {
+            "data": [
+                {
+                    "open": "17072.2300000000000000",
+                    "high": "17080.0000000000000000",
+                    "low": "17056.9800000000000000",
+                    "close": "17062.5400000000000000",
+                    "volume": "54.5517220000000000",
+                    "period": 1606509660000
+                }]}
+        
+        res= self.mktApi.OCHLData(coin=coin, pair=pair, interval=interval)
+
+        self.assertDictEqual(res, expectedRes)
+        
     def test_checkCond_coin_not_found(self):
         
         ## @fn test_checkCond_coin_not_found

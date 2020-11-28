@@ -32,7 +32,7 @@ url = "https://api.coincap.io/v2/assets/bitcoin"
 
 
 ##GET HISTORICAL CANDLES
-#url = "https://api.coincap.io/v2/candles?exchange=binance&interval=m1&baseId=bitcoin&quoteId=tether"
+url = "https://api.coincap.io/v2/candles?exchange=binance&interval=m1&baseId=bitcoin&quoteId=tether"
 ##GET HISTORICAL FOR LOW INTERVALS SINCE " YEARS BACK"
 #url = "https://api.coincap.io/v2/candles?exchange=binance&interval=m1&baseId=ethereum&quoteId=bitcoin&start=1540598400000&end=1540771200000"
 

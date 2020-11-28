@@ -2,6 +2,7 @@
     "start" : "FIRST TIME STAMP INCLUDED HERE (The oldest one) SAME FORMAT AS TIMESTAMP",
     "end" : "LAST TIMESTAMP INCLUDED (THE NEWEST ONE) -- This will update each time a new OCHL is appended",
     "interval" : "WE WILL HAVE OCHL FILES FOR DIFFERENT INTERVALS, WE NEED THIS VISIBLE",
+    "calledAPI" : "",
     "data":[
         {
             "open" : "",
@@ -9,7 +10,7 @@
             "low" : "",
             "close" : "",
             "volume" : "",
-            "timestamp" : 000000000
+            "timestamp" : 0
         },
         {},
         {},
