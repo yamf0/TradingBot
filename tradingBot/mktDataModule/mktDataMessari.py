@@ -8,7 +8,18 @@ import datetime
 import requests
 
 #TODO import a file containing all available coins // all available fiats
+<<<<<<< HEAD
+symbolMap = {"crypto" : [
+            {"symbol" : "btc", "name" : "bitcoin"},
+            {"symbol" : "eth", "name" : "ethereum"}
+            ],
+        "fiat": [
+            {"symbol": "usdt", "name" : "us dollars"},
+            {"symbol": "eur", "name" : "euros"},
+        ]}
+=======
 from tradingBot.resources.globals import symbolMap
+>>>>>>> 4109ba7b0ec86d9b4cec7f2fb6d0116659800b6e
 
 
 class mktDataBaseMessari(mktDataINF):
@@ -222,9 +233,9 @@ class mktDataBaseMessari(mktDataINF):
                 coin: str                   which coin price to obtain (e.g. btc // eth)
                 pair: str                   which pair coin to obtain the price for (e.g. usdt // eur)
                 timeframe: tuple            which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week")) #!PRONE TO CHANGE
-                start: tuple      timestamp from which data starts (e.g. (2020-08-10) --> 
+                start: str      timestamp from which data starts (e.g. 2020-08-10 --> 
                                             10th of AUG of 2020 (year-month-day)) 
-                end: tuple        timestamp until which data ends (e.g. (2020-08-10) --> 
+                end: str        timestamp until which data ends (e.g. 2020-08-10 --> 
                                             10th of AUG of 2020 (year-month-day))  
             @Return
                 json:   json with the information obtained
@@ -264,5 +275,5 @@ if __name__ == "__main__":
     
     o = mktDataBaseMessari()
     o.checkConnection()
-    o.getCurData(coin="BTC",pair="USDT")
-    o.OCHLData(coin="ETH", pair="USDT", interval=(1,"m"))
+    o.getCurData(coin="btc",pair="usdt")
+    o.OCHLData(coin="eth", pair="usdt", start = "2020-08-09", end = "2020-08-10", timeframe=(1,"day"))
