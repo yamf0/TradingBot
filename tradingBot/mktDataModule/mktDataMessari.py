@@ -1,8 +1,7 @@
-"""
-@package mktDataCoincap
-mktData implementation for Coincap API
+## @package mktDataMessari
+# mktData implementation for Messari API, based in mktData interface
+# @author Angel Avalos with the big support of Yael Martinez
 
-"""
 from tradingBot.mktDataModule.mktDataINF import mktDataINF
 import datetime
 import requests
@@ -13,42 +12,39 @@ from tradingBot.resources.globals import symbolMap
 
 
 class mktDataBaseMessari(mktDataINF):
-    """
-        Class that handles the communication with the external market API 
-
-        Methods:
-            __init__():
-
-    """
+    ## Messari class
+    # @class mktDataBaseMessari
+    # @see mktDataINF
     
     def __init__(self):
         pass
 
     def _makeRequest(self, baseUrl= None, params= None):
-        """
-            Method that makes a requests.get call to request the API for information
-
-            Variables
-                func: str           API function to be called (mapped in self.apisInfo)
-                params: dict        parameters to pass with the request
-
-            return:
-                response:           request.response object
-        """
+        
+        ## @fn _makeRequest 
+        # @brief Method that uses requests.get() call to request the API for information
+        # @param baseUrl API function to be called
+        # @param params Parameters to pass with the request
+        # @exception EXCEPTION response not OK
+        # @return response  resonse object json
+        
         response = requests.get(baseUrl, params)
 
         if not response.ok:
             #TODO Make logger message critical failed request
             #TODO RAISE ERROR
+            print(response.json())
             return False
         
         return  response.json()
 
 
     def checkConnection (self):
-        """
-            Method that sends a generic message to the API server to check for connection
-        """
+        
+        ## @fn checkConnection 
+        # @brief Method that sends a generic message to the API server to check for connection
+        # @return boolean
+        
         baseUrl = "https://data.messari.io/api/v1/assets/eth/metrics/market-data"
         params = None
 
@@ -63,15 +59,12 @@ class mktDataBaseMessari(mktDataINF):
         return True
 
     def _getIntvl(self, timeframe=None):
-        """
-            Method that constructs in the correct way the interval needed for the API
-
-            Variables:
-                timeframe: tuple    which time frame the data is to be obtained (e.g. (1, "min")//(1, "day"))
-
-            Return:
-                interval: str       Messari--- constructed as a letter and the number (e.g., d1 = 1 day)
-        """
+        
+        ## @fn _getIntvl 
+        # @brief Method that constructs in the correct way the interval needed for the API
+        # @param timeframe which time frame the data is to be obtained (e.g. (1, "min")//(1, "day"))
+        # @return interval constructed as a letter and the number (e.g., 1d = 1 day)
+     
         if not isinstance(timeframe, tuple):
             #TODO RAISE ERROR TIME FRAME IS NOT A TUPLE
               return False
@@ -85,10 +78,15 @@ class mktDataBaseMessari(mktDataINF):
         return str(number) + timeInterval
 
     def _checkCond(self, **kwargs):
-        """
-            Method that checks that coin Conditions are met
-            Coin requested does exists, pair requested does exist...
-        """
+       
+        ## @fn _checkCond
+        # @brief Method that checks that coin Conditions are met 
+        #         Coin requested does exists, pair requested does exist.
+        # @param coin coin requested
+        # @param pair pair requested
+        # @exception EXCEPTION coin//pair not in available coins
+        # @return boolean   
+        
         coin, pair, *_= [kwargs[key] for key in kwargs.keys()]
         
         if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
@@ -110,6 +108,7 @@ class mktDataBaseMessari(mktDataINF):
         # @param func the type of json to be parsed
         # @param info json to be parsed
         # @return res the json produced 
+        
         calledAPI = "messari"
         if func == "getCurData":
             data = info["data"]
@@ -165,34 +164,27 @@ class mktDataBaseMessari(mktDataINF):
             return res
     
     def _timeUnix (self, timestamp = None):
-        """
-            Method that transfor a timestamp to a Unix timestamp
-    
-            Variables
-                timestamp: str           timestamp that comes for defaultwith Messari (e.g. -->
-                                         2020-11-24T22:27:42.011729805Z)  
-    
-            Return
-                timeUnix:   timestamp in Unix format truncated in a 13 digits int
-
-        """
+        
+        ## @fn _timeUnix
+        # @brief Method that transforms the timestamp to a UNIX format
+        # @param timestamp The timestamp in the default Messari format
+        # @return timeUnix Timestamp in Unix format with 13 digits  
+        
         x = datetime.datetime.strptime(timestamp[:-4], '%Y-%m-%dT%H:%M:%S.%f')
         timeUnix = int(x.timestamp()*1000)
         return timeUnix    
     
     def getCurData (self, **kwargs):
-        """
-            Method that gets the current price of a coin compared to pair
-
-            Variables
-                coin: str                   which coin price to obtain (e.g. btc // eth)
-                pair: str                   which pair coin to obtain the price for (e.g. usdt // eur)
-                exchange:       which exchange to check the price from (e.g. binance // kraken)
-            
-            Return
-                json:   json with the information obtained
-
-        """
+        
+        ## @fn getCurData
+        # @brief Method that gets the current price of a coin compared to pair
+        #
+        # Uses method _makeRequest and _cehckCond
+        #
+        # @param coin which coin price to obtain (e.g. BTC // ETH)
+        # @see _makeRequest, _checkCond
+        # @return json with the information obtained
+        
         methodVar = {"coin" : None, "exchange" : "binance"}
 
         methodVar.update(kwargs)
@@ -215,29 +207,55 @@ class mktDataBaseMessari(mktDataINF):
 
         #TODO Make logger message server connected
         return parsedInf
+    
+    def _timeStamp(self, timestamp):
+        
+        ## @fn _timeStamp
+        # @brief Method that transforms the start and end timestamp into the format Messari requires
+        # @param timestamp The timestamp in a tupple format (e.g. (10, 8, 2020) --> 
+        #                                 10th of AUG of 2020 (day, month, year))
+        # @return timestamp Timestamp in string format (e.g. "2020-8-10" --> 
+        #                                 10th of AUG of 2020 "Year-Month-Day")
+        
+        if timestamp == None:
+            timestamp = None            
+        else:
+            timeS = ""
+            for d in tuple(reversed(timestamp)):
+                 timeS += str(d) + "-"
+            timestamp = timeS[:-1]        
+        return timestamp
+  
 
     def OCHLData(self, **kwargs):
-        """
-            Method that gets the OCHL data for a specific coin in a specified timeframe
-            @Variables
-                coin: str                   which coin price to obtain (e.g. btc // eth)
-                pair: str                   which pair coin to obtain the price for (e.g. usdt // eur)
-                timeframe: tuple            which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week")) #!PRONE TO CHANGE
-                start: str      timestamp from which data starts (e.g. 2020-08-10 --> 
-                                            10th of AUG of 2020 (year-month-day)) 
-                end: str        timestamp until which data ends (e.g. 2020-08-10 --> 
-                                            10th of AUG of 2020 (year-month-day))  
-            @Return
-                json:   json with the information obtained
-        """
+        
+        ## @fn OCHLData
+        # @brief Method that gets the OCHL data for a specific coin in a specified interval
+        #
+        # Uses method _makeRequest and _cehckCond
+        #
+        # @param coin which coin price to obtain (e.g. BTC // ETH)
+        # @param pair which pair coin to obtain the price for (e.g. USDT // EUR)
+        # @param interval which time frame the data is to be obtained (e.g. (1, "min")//(1, "hour") //(1, "day")//(1, "week"))
+        # @param start (optional) timestamp from which data starts (e.g. (10, 8, 2020) --> 
+        #                                 10th of AUG of 2020 (day, month, year)) 
+        # @param end (optional) timestamp until which data ends (e.g. (10, 8, 2020) --> 
+        #                                 10th of AUG of 2020 (day, month, year))  
+        #
+        # @exception EXCEPTION time interval is not permited
+        # @return json with the information obtained
+        
         methodVar = {"coin" : None, "pair" : None, "exchange" : "binance", "timeframe" : None , "start" : None, "end" : None}
 
         methodVar.update(kwargs)
 
         coin, pair, exchange, timeframe, start, end, *_= [methodVar[key] for key in methodVar.keys()]
-
+        
+        
+        start = self._timeStamp(start)
+        end = self._timeStamp(end)
+        
         timeframe = self._getIntvl(timeframe)
-
         if not timeframe:
             #TODO RAISE ERROR TimeInterval not in defined intervals
             return False
@@ -266,4 +284,4 @@ if __name__ == "__main__":
     o = mktDataBaseMessari()
     o.checkConnection()
     o.getCurData(coin="BTC",pair="USDT")
-    o.OCHLData(coin="ETH", pair="USDT", start = "2020-08-09", end = "2020-08-10", timeframe=(1,"day"))
+    o.OCHLData(coin="ETH", pair="USDT", start = (9, 8, 2020), end = (10, 8, 2020), timeframe=(1,"day"))
