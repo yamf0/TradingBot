@@ -2,70 +2,58 @@ import abc
 
 
 class mktDataINF(abc.ABC):
-    """
-        Class that handles the communication with the external market API 
 
-        Methods:
-    """
+    # @class mktDataINF
+    # Interface for all data APIs
+
     @abc.abstractmethod
     def _makeRequest(self, baseUrl=None, params=None):
-        """
-            Method that makes a requests.get call to request the API for information
 
-            Variables
-                func: str           API function to be called (mapped in self.apisInfo)
-                params: dict        parameters to pass with the request
+        # @fn _makeRequest
+        # Abstract method to make request with requests lib
+        # @param baseUrl base URl to call
+        # @param params dict contianing the requested parameters
 
-            return:
-                response:           request.response object
-        """
         pass
 
     @abc.abstractmethod
     def checkConnection(self):
-        """
-            Method that sends a generic message to the API server to check for connection
-        """
+
+        # @fn checkConnection
+        # Abstract method to check API connection
+
         pass
 
     @abc.abstractmethod
     def getCurData(self, **kwargs):
-        """
-            Method that gets the current price of a coin compared to pair
 
-            Variables
+        # @fn getCurData
+        # Abstract method to get current data of coin
 
-            Return
-                json:   json with the information obtained
-
-        """
         pass
 
     @abc.abstractmethod
     def OCHLData(self, **kwargs):
-        """
-            Method that gets the OCHL data for a specific coin in a specified timeframe
-            @Variables
 
-            @Return
-                json:   json with the information obtained
-        """
+        # @fn OCHLData
+        # Abstract method to get candles historic data
+
         pass
 
     @abc.abstractmethod
     def _checkCond(self, **kwargs):
-        """
-            Method that gets the arguments passed in to a method called and checks that conditions are met
-            Coin requested does exists, pair requested does exist...
 
-        """
+        # @fn _checkCond
+        # Abstract method to check correctness of passed arguments
+
         pass
 
     @abc.abstractmethod
     def _parseResponse(self, func=None, info=None):
-        """
-            @fn _parseResponse gets a function name and parse the response in a defined json structure
-            @param func the type of json to be parsed
-            @return res the json produced 
-        """
+
+        # @fn _parseResponse
+        # gets a function name and parse the response in a defined json structure
+        # @param func the type of json to be parsed
+        # @param info dict passed
+
         pass
