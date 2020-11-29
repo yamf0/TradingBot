@@ -1,2 +1,6 @@
 access_keys/*
 venv/*
+docs/*
+.vscode/*
+
+**/__pycache__/
