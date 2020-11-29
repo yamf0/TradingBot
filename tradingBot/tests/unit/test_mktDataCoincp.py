@@ -11,7 +11,7 @@ sys.path.insert(0, r'')
 
 from tradingBot.mktDataModule.mktData import mktDataCoincp
 
-class TestmktDataBase00Coincp(TestCase):
+class TestmktDataBaseCoincp(TestCase):
 
     ## Tests for coincap API
     # @class TestmktDataBaseCoincp
@@ -256,6 +256,15 @@ class TestmktDataBase00Coincp(TestCase):
         ret = self.mktApi._checkCond(coin ="ADA", pair="BTC")
 
         self.assertFalse(ret, "Coin not found in dict")
+    
+    def test_checkCond_pair_not_found(self):
+        
+        ## @fn test_checkCond_coin_not_found
+        # test _checkCond method with a non existing pair
+
+        ret = self.mktApi._checkCond(coin ="BTC", pair="EUR")
+
+        self.assertFalse(ret, "Pair not found in dict")
     
     def test_checkCond_coin_found(self):
 
