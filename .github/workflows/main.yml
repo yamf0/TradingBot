@@ -34,7 +34,7 @@ jobs:
       - name: Lint Flake8
         run: |
           #Stop if there are any errors in linter
-          python -m flake8 .\tradingBot\ --count --select=E2,E3,E9,F63,F7,F82 --ignore=E26 --show-source --statistics
+          python -m flake8 tradingBot/ --count --select=E2,E3,E9,F63,F7,F82 --ignore=E26 --show-source --statistics
       - name: tests with unittest
         run: |
           python -m unittest discover
