@@ -7,9 +7,10 @@ sys.path.insert(0, r'')
 
 import os
 import requests
-from  tradingBot.mktDataModule.mktDataINF import mktDataINF
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
 
 from tradingBot.resources.globals import symbolMap
+
 
 class mktDataBaseCoincp(mktDataINF):
     # Coincap class
