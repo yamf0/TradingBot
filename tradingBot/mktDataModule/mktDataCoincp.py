@@ -44,7 +44,6 @@ class mktDataBaseCoincp(mktDataINF):
         if not response.ok:
             # TODO Make logger message critical failed request
             # TODO RAISE ERROR
-            print(response.json()["error"])
             return False
 
         return response.json()
