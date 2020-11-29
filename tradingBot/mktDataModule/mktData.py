@@ -2,6 +2,7 @@
 from tradingBot.mktDataModule.mktDataCoincp import mktDataBaseCoincp
 from tradingBot.mktDataModule.mktDataMessari import mktDataBaseMessari
 
+
 class mktDataCoincp(mktDataBaseCoincp):
     """
         Class that handles the communication with the external market API 
@@ -15,6 +16,7 @@ class mktDataCoincp(mktDataBaseCoincp):
 
         super().__init__()
 
+
 class mktDataMessari(mktDataBaseMessari):
     """
         Class that handles the communication with the external market API 
@@ -27,8 +29,3 @@ class mktDataMessari(mktDataBaseMessari):
     def __init__(self):
 
         super().__init__()
-
-
-
-
-

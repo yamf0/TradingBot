@@ -7,8 +7,8 @@ class mktDataINF(abc.ABC):
 
         Methods:
     """
-    @abc.abstractmethod       
-    def _makeRequest(self, baseUrl= None, params= None):
+    @abc.abstractmethod
+    def _makeRequest(self, baseUrl=None, params=None):
         """
             Method that makes a requests.get call to request the API for information
 
@@ -21,20 +21,20 @@ class mktDataINF(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod       
-    def checkConnection (self):
+    @abc.abstractmethod
+    def checkConnection(self):
         """
             Method that sends a generic message to the API server to check for connection
         """
         pass
 
-    @abc.abstractmethod       
-    def getCurData (self, **kwargs):
+    @abc.abstractmethod
+    def getCurData(self, **kwargs):
         """
             Method that gets the current price of a coin compared to pair
 
             Variables
-            
+
             Return
                 json:   json with the information obtained
 
@@ -53,7 +53,7 @@ class mktDataINF(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _checkCond (self, **kwargs):
+    def _checkCond(self, **kwargs):
         """
             Method that gets the arguments passed in to a method called and checks that conditions are met
             Coin requested does exists, pair requested does exist...
@@ -69,4 +69,3 @@ class mktDataINF(abc.ABC):
             @return res the json produced 
         """
         pass
-
