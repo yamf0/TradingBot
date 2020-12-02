@@ -4,6 +4,7 @@
 
 
 from tradingBot.mktDataModule.mktData import mktDataCoincp
+from tradingBot.exceptions import BadKwargs, SymbolNotSupported
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -79,9 +80,8 @@ class TestmktDataBaseCoincp(TestCase):
 
         interval = "1,m"
 
-        res = self.mktApi._getIntvl(interval)
 
-        self.assertFalse(res)
+        self.assertRaises(BadKwargs, self.mktApi._getIntvl, interval)
 
     def test_getInterval_notsupported(self):
 
@@ -90,10 +90,8 @@ class TestmktDataBaseCoincp(TestCase):
 
         interval = (1, "b")
 
-        res = self.mktApi._getIntvl(interval)
-
-        self.assertFalse(res)
-
+        self.assertRaises(BadKwargs, self.mktApi._getIntvl, interval)
+        
     def test_getInterval_pass(self):
 
         # @fn test_getInterval_notsupported
@@ -106,18 +104,6 @@ class TestmktDataBaseCoincp(TestCase):
         self.assertIsInstance(res, str)
         self.assertEqual(res, "m1")
 
-    def test_getCurData_checkCond_fail(self):
-
-        # @fn test_getCurData_Not_sufficient_kwargs
-        # Test a call to getCurData with wrong coin or pair, Method _checkCond should fail and
-        # whole method fails with False
-
-        coin = "ADA"
-        pair = None
-
-        res = self.mktApi.getCurData(coin=coin, pair=pair)
-
-        self.assertFalse(res)
 
     @patch("tradingBot.mktDataModule.mktDataCoincp.mktDataBaseCoincp._makeRequest")
     def test_getCurData_makeRequest_fail(self, mock_makeRequest):
@@ -190,10 +176,8 @@ class TestmktDataBaseCoincp(TestCase):
 
         coin = "BTC"
         pair = "ETH"
+        self.assertRaises(BadKwargs, self.mktApi.OCHLData, coin=coin, pair=pair)
 
-        res = self.mktApi.OCHLData(coin=coin, pair=pair)
-
-        self.assertFalse(res)
 
     @patch("tradingBot.mktDataModule.mktDataCoincp.mktDataBaseCoincp._makeRequest")
     def test_OCHLData_makeRequest_fail(self, mock_makeRequest):
@@ -249,19 +233,18 @@ class TestmktDataBaseCoincp(TestCase):
         # @fn test_checkCond_coin_not_found
         # test _checkCond method with a non existing coin
 
-        ret = self.mktApi._checkCond(coin="ADA", pair="BTC")
-
-        self.assertFalse(ret, "Coin not found in dict")
+        self.assertRaises(SymbolNotSupported,
+                          self.mktApi._checkCond, coin="ADA", pair="BTC")
 
     def test_checkCond_pair_not_found(self):
 
         # @fn test_checkCond_coin_not_found
         # test _checkCond method with a non existing pair
 
-        ret = self.mktApi._checkCond(coin="BTC", pair="EUR")
+        self.assertRaises(SymbolNotSupported,
+                          self.mktApi._checkCond, coin="BTC", pair="ADA")
 
-        self.assertFalse(ret, "Pair not found in dict")
-
+        
     def test_checkCond_coin_found(self):
 
         # @fn test_checkCond_coin_not_found
