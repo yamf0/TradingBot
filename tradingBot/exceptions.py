@@ -16,9 +16,11 @@ class BadKwargs(Exception):
         else:
             self.message = None
         pass
+    
     def __str__(self):
         
         return "BadKwargs, {}".format(self.message)
+
 
 class SymbolNotSupported(Exception):
     

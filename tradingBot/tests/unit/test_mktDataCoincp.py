@@ -80,7 +80,6 @@ class TestmktDataBaseCoincp(TestCase):
 
         interval = "1,m"
 
-
         self.assertRaises(BadKwargs, self.mktApi._getIntvl, interval)
 
     def test_getInterval_notsupported(self):
@@ -91,7 +90,7 @@ class TestmktDataBaseCoincp(TestCase):
         interval = (1, "b")
 
         self.assertRaises(BadKwargs, self.mktApi._getIntvl, interval)
-        
+
     def test_getInterval_pass(self):
 
         # @fn test_getInterval_notsupported
@@ -103,7 +102,6 @@ class TestmktDataBaseCoincp(TestCase):
 
         self.assertIsInstance(res, str)
         self.assertEqual(res, "m1")
-
 
     @patch("tradingBot.mktDataModule.mktDataCoincp.mktDataBaseCoincp._makeRequest")
     def test_getCurData_makeRequest_fail(self, mock_makeRequest):
@@ -178,7 +176,6 @@ class TestmktDataBaseCoincp(TestCase):
         pair = "ETH"
         self.assertRaises(BadKwargs, self.mktApi.OCHLData, coin=coin, pair=pair)
 
-
     @patch("tradingBot.mktDataModule.mktDataCoincp.mktDataBaseCoincp._makeRequest")
     def test_OCHLData_makeRequest_fail(self, mock_makeRequest):
         coin = "BTC"
@@ -243,7 +240,6 @@ class TestmktDataBaseCoincp(TestCase):
 
         self.assertRaises(SymbolNotSupported,
                           self.mktApi._checkCond, coin="BTC", pair="ADA")
-
         
     def test_checkCond_coin_found(self):
 
