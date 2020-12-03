@@ -2,11 +2,15 @@
 # mktData implementation for Coincap API, based in mktData interface
 # @author Yael Martinez
 
-import os
-import requests
 
 import sys
 sys.path.insert(0, r'')
+
+import os
+import requests
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
+
+from tradingBot.resources.globals import symbolMap
 
 from tradingBot.exceptions import BadKwargs, SymbolNotSupported
 from tradingBot.resources.globals import symbolMap
