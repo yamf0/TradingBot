@@ -285,4 +285,4 @@ if __name__ == "__main__":
     o = mktDataBaseCoincp()
     o.checkConnection()
     o.getCurData(coin="BTC", pair="USDT")
-    o.OCHLData(coin="ETH", pair="USDT", interval="(1, )")
+    o.OCHLData(coin="ETH", pair="USDT", interval=(1, "m"))
