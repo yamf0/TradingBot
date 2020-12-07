@@ -2,6 +2,7 @@
 # mktData implementation for Coincap API, based in mktData interface
 # @author Yael Martinez
 
+
 import sys
 sys.path.insert(0, r'')
 
@@ -10,6 +11,10 @@ import requests
 from tradingBot.mktDataModule.mktDataINF import mktDataINF
 
 from tradingBot.resources.globals import symbolMap
+
+from tradingBot.exceptions import BadKwargs, SymbolNotSupported
+from tradingBot.resources.globals import symbolMap
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
 
 
 class mktDataBaseCoincp(mktDataINF):
@@ -45,7 +50,6 @@ class mktDataBaseCoincp(mktDataINF):
 
         if not response.ok:
             # TODO Make logger message critical failed request
-            # TODO RAISE ERROR
             return False
 
         return response.json()
@@ -59,12 +63,13 @@ class mktDataBaseCoincp(mktDataINF):
 
         if not isinstance(timeframe, tuple):
             # TODO RAISE ERROR TIME FRAME IS NOT A TUPLE
-            return False
+            raise(BadKwargs("Time interval is not a Tuple"))
 
         number, timeInterval = timeframe
         if timeInterval[0] not in "mhwd":
             # TODO RAISE ERROR TimeInterval not in defined intervals
-            return False
+            raise(BadKwargs("Time frame not in supported time frames"))
+
         timeInterval = timeInterval[0]
 
         return timeInterval + str(number)
@@ -83,12 +88,12 @@ class mktDataBaseCoincp(mktDataINF):
 
         if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
             # TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
-            return False
+            raise(SymbolNotSupported(coin))
 
         if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
                 [fiat["symbol"] for fiat in symbolMap["fiat"]]:
+            raise(SymbolNotSupported(pair))
             # TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
-            return False
 
         return True
 
@@ -251,7 +256,6 @@ class mktDataBaseCoincp(mktDataINF):
         interval = self._getIntvl(interval)
 
         if not interval:
-            # TODO RAISE ERROR TimeInterval not in defined intervals
             return False
 
         if not self._checkCond(coin=coin, pair=pair):
