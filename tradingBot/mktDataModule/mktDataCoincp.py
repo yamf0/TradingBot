@@ -163,8 +163,8 @@ class mktDataBaseCoincp(mktDataINF):
                     "timestamp": timestamp
                 }
                 res["data"].append(dDict)
-            res["start"] = res["data"][-1]["timestamp"]
-            res["end"] = res["data"][0]["timestamp"]
+            res["start"] = res["data"][0]["timestamp"]
+            res["end"] = res["data"][-1]["timestamp"]
             res["calledAPI"] = api
             return res
 
