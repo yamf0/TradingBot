@@ -6,6 +6,8 @@
 
 import time
 import threading
+import os
+import queue
 
 import sys
 sys.path.insert(0, r'')
@@ -15,20 +17,49 @@ from tradingBot.mktDataModule.mktData import mktDataBaseMessari
 
 
 class coinBotBase():
-
+    
     ## coinBotBase
     # @brief contains the Base class for coinBot
-    def __init__(self):
-        self.counter = counter(10)
+    # @var rPath path relative for TradinBot main folder
+    rPath = os.getcwd()
+
+    def __init__(self, coin, pair, counter):
+
+        ## 
+        # @fn __init__
+        #@brief initialize object with instance veriables
+        #@param coin coin to analyze
+        #@param pari pair to analyze
+        #@param counter objet of the counter class
+        #@var dbPath path to the current db of instance
+        self.coin = coin
+        self.pair = pair
+        self.counter = counter
+        self.dbPath = os.path.join(self.rPath, "tradingBot", \
+            "Data", self.coin, self.pair)
+
+        self.queue = queue.Queue()
         self.counter.addObsv(self)
-    
-    def _curTmstp(self):
-        pass
+
+        self._queueLoop()
+
+    def _queueLoop(self):
+        while True:
+            try:
+                self.tmstp = self.queue.get()
+                self._handleTask()
+            except queue.Empty:
+                continue
+            time.sleep(0.1)
+
+    def _handleTask(self):
+        print("we got msg {}".format(self.coin))
+
+    def __getCurTmstpRounded(self):
+        tmstp = int(time.time())
+        return tmstp
 
     def _getLatestTmstp(self):
-        pass
-
-    def _matchTmstp(self, tmstp_1, tmstp_2):
         pass
 
     def _getUpdatedOCHL(self, tmstp, interval):
@@ -40,19 +71,17 @@ class coinBotBase():
     def _getCurPrice(self):
         pass
     
-    def update(self):
-        print("HELLO")
-    pass
-
-
+    
 class coinBot(coinBotBase):
 
     ## CoinBot
     # inherits from CoinBotBase
     # @see CoinBotBase
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, coin, pair, counter):
+        super().__init__(coin, pair, counter)
+
+#TODO DO WE NEED SOMEWAY TO KILL THE THREAD??
 
 
 class counter():
@@ -71,7 +100,7 @@ class counter():
         
         self.intvl = interval
         self.lock = threading.RLock()
-        thread = threading.Thread(target=self._start, daemon=False)
+        thread = threading.Thread(target=self._start, daemon=True)
         thread.start()
 
     def addObsv(self, Object):
@@ -85,26 +114,25 @@ class counter():
     def _notify(self):
         with self.lock:
             for obsv in self._observers:
-                obsv.update()
+                obsv.queue.put([self._tmstp])
 
     def _start(self):
         
         while True:
             tmstp = self.__synchronize()
             self.__setTmstp(tmstp)
+            time.sleep(1)
 
     def __synchronize(self):
         tmstp = self.__getTmstp()
-        while tmstp % self.intvl != 0:
+        while int(tmstp / 1000) % (self.intvl) != 0:
             tmstp = self.__getTmstp()
-            if str(tmstp).split(".")[-1] > "9":
-                tmstp = int(tmstp)
             time.sleep(0.1)
         return tmstp
 
     def __getTmstp(self):
-        tmstp = time.time()
-        return tmstp
+        tmstp = time.time() * 1000
+        return int(tmstp) 
 
     def __setTmstp(self, tmstp):
         self._tmstp = tmstp
@@ -113,5 +141,9 @@ class counter():
     
 
 if __name__ == "__main__":
+    print(os.getcwd())
+    counter = counter(10)
 
-    o = coinBot()
+    coinBot("BTC", "USDT", counter)
+       
+
