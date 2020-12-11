@@ -8,6 +8,7 @@ import time
 import threading
 import os
 import queue
+import json
 
 import sys
 sys.path.insert(0, r'')
@@ -32,11 +33,21 @@ class coinBotBase():
         #@param pari pair to analyze
         #@param counter objet of the counter class
         #@var dbPath path to the current db of instance
+
         self.coin = coin
         self.pair = pair
         self.counter = counter
+        self.mktDataCoincap = mktDataCoincp()
         self.dbPath = os.path.join(self.rPath, "tradingBot", \
             "Data", self.coin, self.pair)
+
+        self.dbOCHL = {}
+        self.curOCHLData = {}
+
+        #Load data from db
+        self._loadDbOCHL()
+        #Check if data is updated
+        self._getLatestTmstp(self._getUpdatedOCHL)
 
         self.queue = queue.Queue()
         self.counter.addObsv(self)
@@ -44,6 +55,7 @@ class coinBotBase():
         self._queueLoop()
 
     def _queueLoop(self):
+
         while True:
             try:
                 self.tmstp = self.queue.get()
@@ -53,25 +65,63 @@ class coinBotBase():
             time.sleep(0.1)
 
     def _handleTask(self):
+
         print("we got msg {}".format(self.coin))
+        self._getCurPrice()
+
+    def _loadDbOCHL(self):
+
+        filenames = [candlesFiles for _, _, candlesFiles in os.walk(self.dbPath)][0]
+        for fileInterval in filenames:
+            with open(os.path.join(self.dbPath, fileInterval), "r") as f:
+                dat = json.load(f)
+                self.dbOCHL[fileInterval.split(".")[0]] = dat
 
     def __getCurTmstpRounded(self):
-        tmstp = int(time.time())
+
+        tmstp = int(time.time() * 1000)
         return tmstp
 
-    def _getLatestTmstp(self):
-        pass
+    def _getLatestTmstp(self, dataFunc):
 
-    def _getUpdatedOCHL(self, tmstp, interval):
+        intervals = {"5m": 300, "15m": 900, "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
+        tmstp = self.__getCurTmstpRounded()
+        for key, val in self.dbOCHL.items():
+            lastTmstp = val["end"]            
+            if (tmstp - lastTmstp) >= (intervals[key]):
+                if ((tmstp - lastTmstp) % intervals[key]) >= (intervals[key] - 10):
+                    time.sleep(((intervals[key]) - (tmstp - lastTmstp)) % (intervals[key]))
+                tmstp = self.__getCurTmstpRounded()
+                tmstp = tmstp - (tmstp % intervals[key])
+
+                #Get the data with the injected function
+                dataFunc(key, lastTmstp, tmstp)
+                print("UPDATE {}".format(tmstp))
+
+    def _getIntvl(self, interval):
+        
+        interval = tuple(i for i in interval)
+        interval = (int(interval[0]), interval[1].lower()) 
+        return interval
+
+    def _getUpdatedOCHL(self, interval, start, end):
+        
+        key = interval
+        interval = self._getIntvl(interval)
+        data = self.mktDataCoincap.OCHLData(coin=self.coin, pair=self.pair, interval=interval)
+        print(len(self.dbOCHL[key]["data"]))
+        self.dbOCHL[key]["end"] = data["end"]
+        self.dbOCHL[key]["data"] = self.dbOCHL[key]["data"] + data["data"]
+        print(len(self.dbOCHL[key]["data"]))
+        print(self.dbOCHL[key])
+
+    def _getCurPrice(self):
         pass
 
     def _saveOCHL(self, data, path):
         pass
 
-    def _getCurPrice(self):
-        pass
-    
-    
+
 class coinBot(coinBotBase):
 
     ## CoinBot
