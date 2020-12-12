@@ -9,6 +9,7 @@ import threading
 import os
 import queue
 import json
+import re
 
 import sys
 sys.path.insert(0, r'')
@@ -43,9 +44,10 @@ class coinBotBase():
 
         self.dbOCHL = {}
         self.curOCHLData = {}
+        self.intervals = {"5m": 300, "15m": 900, "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
 
         #Load data from db
-        self._loadDbOCHL()
+        self._load_dbOCHL()
         #Check if data is updated
         self._getLatestTmstp(self._getUpdatedOCHL)
 
@@ -58,24 +60,25 @@ class coinBotBase():
 
         while True:
             try:
-                self.tmstp = self.queue.get()
-                self._handleTask()
+                tmstp = self.queue.get()[0]
+                self._handleTask(tmstp)
             except queue.Empty:
                 continue
             time.sleep(0.1)
 
-    def _handleTask(self):
+    def _handleTask(self, tmstp):
 
-        print("we got msg {}".format(self.coin))
-        self._getCurPrice()
+        print("we got msg {} at tmstp {}".format(self.coin, tmstp))
+        self._getCurPrice(tmstp)
 
-    def _loadDbOCHL(self):
+    def _load_dbOCHL(self):
 
         filenames = [candlesFiles for _, _, candlesFiles in os.walk(self.dbPath)][0]
         for fileInterval in filenames:
             with open(os.path.join(self.dbPath, fileInterval), "r") as f:
                 dat = json.load(f)
                 self.dbOCHL[fileInterval.split(".")[0]] = dat
+                self.curOCHLData[fileInterval.split(".")[0]] = {"open": 0, "close": 0, "high": 0, "low": 0, "current": 0, "openTmstp": 0}
 
     def __getCurTmstpRounded(self):
 
@@ -84,15 +87,14 @@ class coinBotBase():
 
     def _getLatestTmstp(self, dataFunc):
 
-        intervals = {"5m": 300, "15m": 900, "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
         tmstp = self.__getCurTmstpRounded()
         for key, val in self.dbOCHL.items():
             lastTmstp = val["end"]            
-            if (tmstp - lastTmstp) >= (intervals[key]):
-                if ((tmstp - lastTmstp) % intervals[key]) >= (intervals[key] - 10):
-                    time.sleep(((intervals[key]) - (tmstp - lastTmstp)) % (intervals[key]))
+            if int((tmstp - lastTmstp) / 1000) >= (self.intervals[key]):
+                if ((tmstp - lastTmstp) % self.intervals[key]) >= (self.intervals[key] - 10):
+                    time.sleep(((self.intervals[key]) - (tmstp - lastTmstp)) % (self.intervals[key]))
                 tmstp = self.__getCurTmstpRounded()
-                tmstp = tmstp - (tmstp % intervals[key])
+                tmstp = tmstp - (tmstp % self.intervals[key])
 
                 #Get the data with the injected function
                 dataFunc(key, lastTmstp, tmstp)
@@ -100,7 +102,7 @@ class coinBotBase():
 
     def _getIntvl(self, interval):
         
-        interval = tuple(i for i in interval)
+        interval = re.findall(r'[A-Za-z]+|\d+', interval)
         interval = (int(interval[0]), interval[1].lower()) 
         return interval
 
@@ -108,15 +110,29 @@ class coinBotBase():
         
         key = interval
         interval = self._getIntvl(interval)
-        data = self.mktDataCoincap.OCHLData(coin=self.coin, pair=self.pair, interval=interval)
+        data = self.mktDataCoincap.OCHLData(coin=self.coin, pair=self.pair, interval=interval, start=start, end=end)
         print(len(self.dbOCHL[key]["data"]))
         self.dbOCHL[key]["end"] = data["end"]
         self.dbOCHL[key]["data"] = self.dbOCHL[key]["data"] + data["data"]
         print(len(self.dbOCHL[key]["data"]))
-        print(self.dbOCHL[key])
+        self.curOCHLData[key]["openTmstp"] = data["end"]
 
-    def _getCurPrice(self):
-        pass
+    def _getCurPrice(self, tmstp):
+        data = self.mktDataCoincap.getCurData(coin=self.coin, pair=self.pair)
+        price = float(data["data"][0]["price"])
+        for key, val in self.curOCHLData.items():
+            val["cur"] = price
+            if (int((tmstp - val["openTmstp"]) / 1000)) >= (self.intervals[key]):
+                val["open"] = price
+                val["high"] = price
+                val["low"] = price
+                val["openTmstp"] = tmstp
+                self._getLatestTmstp(self._getUpdatedOCHL)
+            else:
+                if val["high"] < price:
+                    val["high"] = price
+                elif val["low"] > price:
+                    val["low"] = price
 
     def _saveOCHL(self, data, path):
         pass
