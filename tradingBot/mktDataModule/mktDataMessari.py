@@ -8,8 +8,7 @@ import requests
 import sys
 sys.path.insert(0, r'')
 
-# TODO import a file containing all available coins // all available fiats
-
+from tradingBot.exceptions import BadKwargs, SymbolNotSupported
 from tradingBot.mktDataModule.mktDataINF import mktDataINF
 from tradingBot.resources.globals import symbolMap
 
@@ -35,10 +34,9 @@ class mktDataBaseMessari(mktDataINF):
 
         if not response.ok:
             # TODO Make logger message critical failed request
-            # TODO RAISE ERROR
-            print(response.json())
+            #print(response.json())
             return False
-
+            
         return response.json()
 
     def checkConnection(self):
@@ -68,13 +66,13 @@ class mktDataBaseMessari(mktDataINF):
         # @return interval constructed as a letter and the number (e.g., 1d = 1 day)
 
         if not isinstance(timeframe, tuple):
-            # TODO RAISE ERROR TIME FRAME IS NOT A TUPLE
-            return False
+            
+            raise(BadKwargs("Time interval is not a Tuple"))
 
         number, timeInterval = timeframe
         if timeInterval[0] not in "mhwd":
-            # TODO RAISE ERROR TimeInterval not in defined intervals
-            return False
+            
+            raise(BadKwargs("Time frame not in supported time frames"))
         timeInterval = timeInterval[0]
 
         return str(number) + timeInterval
@@ -92,15 +90,15 @@ class mktDataBaseMessari(mktDataINF):
         coin, pair, *_ = [kwargs[key] for key in kwargs.keys()]
 
         if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
-            # TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
-            return False
+            
+            raise(SymbolNotSupported(coin))
         if pair is None:
             pass
         else:
             if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
                     [fiat["symbol"] for fiat in symbolMap["fiat"]]:
                 # TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
-                return False
+                raise(SymbolNotSupported(pair))
         return True
 
     def _parseResponse(self, func=None, info=None):
