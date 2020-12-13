@@ -2,12 +2,15 @@
 # mktData implementation for Messari API, based in mktData interface
 # @author Angel Avalos with the big support of Yael Martinez
 
-from tradingBot.mktDataModule.mktDataINF import mktDataINF
+
 import datetime
 import requests
+import sys
+sys.path.insert(0, r'')
 
 # TODO import a file containing all available coins // all available fiats
 
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
 from tradingBot.resources.globals import symbolMap
 
 
@@ -244,15 +247,16 @@ class mktDataBaseMessari(mktDataINF):
         # @return json with the information obtained
 
         methodVar = {"coin": None, "pair": None, "exchange": "binance",
-                     "timeframe": None, "start": None, "end": None}
+                     "interval": None, "start": None, "end": None}
 
         methodVar.update(kwargs)
 
-        coin, pair, exchange, timeframe, start, end, * \
+        coin, pair, exchange, interval, start, end, * \
             _ = [methodVar[key] for key in methodVar.keys()]
-
-        start = self._timeStamp(start)
-        end = self._timeStamp(end)
+        
+        timeframe = interval            
+        #start = self._timeStamp(start)
+        #end = self._timeStamp(end)
 
         timeframe = self._getIntvl(timeframe)
         if not timeframe:
@@ -285,5 +289,5 @@ if __name__ == "__main__":
     o = mktDataBaseMessari()
     o.checkConnection()
     o.getCurData(coin="BTC", pair="USDT")
-    o.OCHLData(coin="ETH", pair="USDT", start=(9, 8, 2020),
-               end=(10, 8, 2020), timeframe=(1, "day"))
+    o.OCHLData(coin="ETH", pair="USDT", start=1606409660000,
+               end=1606509660000, interval=(1, "day"))
