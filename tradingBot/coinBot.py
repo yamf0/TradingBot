@@ -48,11 +48,10 @@ class coinBotBase():
         self.intervals = {"5m": 300, "15m": 900, "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
 
         #Load data from db
-        self._load_dbOCHL()
-        self._populateDicts()
+        self._loadDbOCHL()
         #Check if data is updated
-        self._getLatestTmstp(self._getUpdatedOCHL)
-
+        self._getCurPrice(time.time() * 1000)
+        
         self.queue = queue.Queue()
         self.counter.addObsv(self)
 
@@ -73,28 +72,33 @@ class coinBotBase():
         print("we got msg {} at tmstp {}".format(self.coin, tmstp))
         self._getCurPrice(tmstp)
 
-    def _load_dbOCHL(self):
+    def _loadDbOCHL(self):
         filenames = [candlesFiles for _, _, candlesFiles in os.walk(self.dbPath)][0]
         for fileInterval in filenames:
             with open(os.path.join(self.dbPath, fileInterval), "r") as f:
                 dat = json.load(f)
                 intervalName = fileInterval.split(".")[0]
                 self.dbOCHL[intervalName] = dat
-                     
-    def _populateDicts(self):
+
         for key, val in self.dbOCHL.items():
             self.curOCHLData[key] = {"open": 0, "close": 0, "high": 0, "low": 0, "openTmstp": 0, "missingC": 0}      
             self.dbByTmstp[key] = {}
             for candle in val["data"]:
                 self.dbByTmstp[key][candle["timestamp"]] = {key: val for key, val in candle.items() if key != "timestamp"}
 
-    def __missingCandles(self, interval, tmstp, latestTmstp):
+    def _saveOCHL(self, intvlDb):
+         
+        with open(os.path.join(self.dbPath, intvlDb + ".json"), "w") as f:
+            json.dump(self.dbOCHL[intvlDb], f, indent=2)
 
-        misCandles = (tmstp - latestTmstp) / 1000 / self.intervals[interval]
-        print("missing candles {} at {} interval".format(misCandles, interval))
-        return misCandles 
+    def _getIntvl(self, interval):
+        
+        interval = re.findall(r'[A-Za-z]+|\d+', interval)
+        interval = (int(interval[0]), interval[1].lower()) 
+        return interval
 
     def _getOCHL(self, interval, end):
+
         reqInterval = self._getIntvl(interval)
         keys = list(self.dbByTmstp[interval])[::-1]
         start = [start for start in keys if "volume" in self.dbByTmstp[interval][start].keys()][0]
@@ -106,7 +110,10 @@ class coinBotBase():
         else:
             for dat in data["data"]:
                self.dbByTmstp[interval][dat["timestamp"]] = dat
-            
+        
+            self.dbOCHL[interval]["end"] = data["end"]
+            self.dbOCHL[interval]["data"] = self.dbOCHL[interval]["data"] + data["data"]
+            self._saveOCHL(interval)
             return True
 
     def _updateTmstpKeys(self, tmstp, interval):
@@ -141,57 +148,6 @@ class coinBotBase():
                     val["low"] = price
             
             self.dbByTmstp[key][tmstpKey] = val.copy()
-                
-                #val["openTmstp"] = self.dbOCHL[key]["end"] + self.intervals[key] * 1000 
-            """if self.__missingCandles(key, tmstp, self.dbOCHL[key]["end"]) >= 1:
-                if self.__missingCandles(key, tmstp, val["openTmstp"]) >= 1:"""
-
-    def __getCurTmstpRounded(self):
-
-        tmstp = int(time.time() * 1000)
-        return tmstp
-
-    def _getLatestTmstp(self, dataFunc):
-
-        for key, val in self.dbOCHL.items():
-            tmstp = self.__getCurTmstpRounded()
-            lastestTmstp = val["end"]          
-            #sleep if interval is close to next interval completion
-            if ((tmstp - lastestTmstp) % self.intervals[key]) >= (self.intervals[key] - 10):
-                    time.sleep(((self.intervals[key]) - (tmstp - lastestTmstp)) % (self.intervals[key])) 
-            if self.__missingCandles(key, tmstp, lastestTmstp) >= 2:
-                
-                #Get the data with the injected function
-                exitCode = dataFunc(key, lastestTmstp + self.intervals[key] * 1000, tmstp)
-               
-                print("UPDATE {}".format(tmstp))
-                self._saveOCHL(key)
-                           
-    def _getIntvl(self, interval):
-        
-        interval = re.findall(r'[A-Za-z]+|\d+', interval)
-        interval = (int(interval[0]), interval[1].lower()) 
-        return interval
-
-    def _getUpdatedOCHL(self, interval, start, end):
-        
-        key = interval
-        interval = self._getIntvl(interval)
-        data = self.mktDataCoincap.OCHLData(coin=self.coin, pair=self.pair, interval=interval, start=start, end=end + 1000)
-        
-        if not data:
-            #TODO raise exception data not obtained
-            return False
-        print(len(self.dbOCHL[key]["data"]))
-        self.dbOCHL[key]["end"] = data["end"]
-        self.dbOCHL[key]["data"] = self.dbOCHL[key]["data"] + data["data"]
-        print(len(self.dbOCHL[key]["data"]))
-        #self.curOCHLData[key]["openTmstp"] = data["end"] + self.intervals[key] * 1000
-        return True
-
-    def _saveOCHL(self, intvlDb):
-        with open(os.path.join(self.dbPath, intvlDb + ".json"), "w") as f:
-            json.dump(self.dbOCHL[intvlDb], f, indent=2)
 
 
 class coinBot(coinBotBase):
