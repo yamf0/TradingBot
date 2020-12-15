@@ -274,6 +274,9 @@ class mktDataBaseMessari(mktDataINF):
         if not res:
             # TODO Logger connection with server down
             return False
+        
+        if len(res["data"]) == 0:
+            return False
 
         parsedInf = self._parseResponse(func="OCHLData", info=res)
         parsedInf["interval"] = timeframe

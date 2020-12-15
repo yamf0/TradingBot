@@ -145,6 +145,7 @@ class mktDataBaseCoincp(mktDataINF):
             return res
         elif func == "OCHLData":
             res = {
+                "calledAPI": calledAPI,
                 "start": "",
                 "end": "",
                 "interval": "",
@@ -165,7 +166,7 @@ class mktDataBaseCoincp(mktDataINF):
                 res["data"].append(dDict)
             res["start"] = res["data"][0]["timestamp"]
             res["end"] = res["data"][-1]["timestamp"]
-            res["calledAPI"] = api
+            
             return res
 
     def checkConnection(self):
@@ -275,6 +276,9 @@ class mktDataBaseCoincp(mktDataINF):
 
         if not res:
             # TODO Logger connection with server down
+            return False
+        
+        if len(res["data"]) == 0:
             return False
 
         parsedInf = self._parseResponse(func="OCHLData", info=res)
