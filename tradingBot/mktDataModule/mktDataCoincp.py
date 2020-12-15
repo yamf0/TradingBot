@@ -145,7 +145,7 @@ class mktDataBaseCoincp(mktDataINF):
             return res
         elif func == "OCHLData":
             res = {
-                "calledAPI": calledAPI,
+                "calledAPI": api,
                 "start": "",
                 "end": "",
                 "interval": "",
