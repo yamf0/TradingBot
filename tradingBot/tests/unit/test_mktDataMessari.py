@@ -9,12 +9,10 @@ from unittest import TestCase
 from unittest.mock import patch
 
 
-
-
 class TestmktDataBaseMessari(TestCase):
     # Tests Messari API
     # @class TestmktDataBaseMessari
-    
+
     def setUp(self):
 
         # @fn setup
@@ -58,7 +56,7 @@ class TestmktDataBaseMessari(TestCase):
         # @fn test_makeRequest_failed
         # tests a failed request, mocks requests.get call and returns a False in response.ok
 
-        baseUrl= "https://data.messari.io/api/vrket-data"
+        baseUrl = "https://data.messari.io/api/vrket-data"
         params = None
 
         mock_get.return_value.ok = False
@@ -191,7 +189,7 @@ class TestmktDataBaseMessari(TestCase):
 
         mock_makeRequest.return_value = False
 
-        res = self.mktApi.OCHLData(coin=coin, pair=pair, interval = interval)
+        res = self.mktApi.OCHLData(coin=coin, pair=pair, interval=interval)
 
         self.assertFalse(res)
 
@@ -235,7 +233,7 @@ class TestmktDataBaseMessari(TestCase):
             }
         
         res = self.mktApi.OCHLData(coin=coin, pair=pair, \
-            start = start, end = end , interval = interval)
+            start=start, end=end, interval=interval)
 
         self.assertDictEqual(res, expectedRes)
 
