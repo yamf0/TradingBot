@@ -6,6 +6,8 @@
 import datetime
 import requests
 import sys
+import pytz
+
 sys.path.insert(0, r'')
 
 from tradingBot.exceptions import BadKwargs, SymbolNotSupported
@@ -169,8 +171,9 @@ class mktDataBaseMessari(mktDataINF):
         # @param timestamp The timestamp in the default Messari format
         # @return timeUnix Timestamp in Unix format with 13 digits
 
-        x = datetime.datetime.strptime(timestamp[:-4], '%Y-%m-%dT%H:%M:%S.%f')
-        timeUnix = int(x.timestamp() * 1000)
+        d = datetime.datetime.strptime(timestamp[:-4], '%Y-%m-%dT%H:%M:%S.%f')
+        d = pytz.timezone('UTC').localize(d)
+        timeUnix = int(d.timestamp() * 1000)
         return timeUnix
 
     def getCurData(self, **kwargs):
@@ -289,6 +292,7 @@ if __name__ == "__main__":
 
     o = mktDataBaseMessari()
     o.checkConnection()
+    o._timeUnix(timestamp="2020-12-16T19:35:59.777184057Z")
     o.getCurData(coin="BTC", pair="USDT")
     o.OCHLData(coin="ETH", pair="USDT", start=1606409660000,
                end=1606509660000, interval=(1, "day"))
