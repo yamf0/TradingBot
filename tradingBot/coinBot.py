@@ -45,7 +45,8 @@ class coinBotBase():
         self.dbOCHL = {}
         self.curOCHLData = {}
         self.dbByTmstp = {}
-        self.intervals = {"5m": 300, "15m": 900, "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
+        self.intervals = {"5m": 300, "15m": 900,
+                          "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
 
         #Load data from db
         self._loadDbOCHL()
@@ -81,10 +82,11 @@ class coinBotBase():
                 self.dbOCHL[intervalName] = dat
 
         for key, val in self.dbOCHL.items():
-            self.curOCHLData[key] = {"open": 0, "close": 0, "high": 0, "low": 0, "openTmstp": 0, "missingC": 0}      
+            self.curOCHLData[key] = {"open": 0, "close": 0, "high": 0, "low": 0}      
             self.dbByTmstp[key] = {}
             for candle in val["data"]:
-                self.dbByTmstp[key][candle["timestamp"]] = {key: val for key, val in candle.items() if key != "timestamp"}
+                self.dbByTmstp[key][candle["timestamp"]] = {
+                    key: val for key, val in candle.items() if key != "timestamp"}
 
     def _saveOCHL(self, intvlDb):
          
@@ -101,9 +103,11 @@ class coinBotBase():
 
         reqInterval = self._getIntvl(interval)
         keys = list(self.dbByTmstp[interval])[::-1]
-        start = [start for start in keys if "volume" in self.dbByTmstp[interval][start].keys()][0]
+        start = [
+            start for start in keys if "volume" in self.dbByTmstp[interval][start].keys()][0]
 
-        data = self.mktDataCoincap.OCHLData(coin=self.coin, pair=self.pair, interval=reqInterval, start=start + 10000, end=end + 10000)
+        data = self.mktDataCoincap.OCHLData(
+            coin=self.coin, pair=self.pair, interval=reqInterval, start=start + 10000, end=end + 10000)
         if not data:
             #TODO raise exception data not obtained
             return False
@@ -148,6 +152,8 @@ class coinBotBase():
                     val["low"] = price
             
             self.dbByTmstp[key][tmstpKey] = val.copy()
+            print("update at {} initial Tmspt {} real tmstp {} dict {}".format(
+                key, tmstpKey, tmstp, self.dbByTmstp[key][tmstpKey]))
 
 
 class coinBot(coinBotBase):
@@ -220,7 +226,7 @@ class counter():
 
 if __name__ == "__main__":
     print(os.getcwd())
-    counter = counter(30)
+    counter = counter(10)
 
     coinBot("BTC", "USDT", counter)
        
