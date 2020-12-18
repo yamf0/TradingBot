@@ -1,12 +1,12 @@
 # tests for mktDataMessari
-# @author Angel Avalos 
+# @author Angel Avalos
 
+from unittest.mock import patch
+from unittest import TestCase
+from tradingBot.exceptions import BadKwargs, SymbolNotSupported
+from tradingBot.mktDataModule.mktData import mktDataMessari
 import sys
 sys.path.insert(0, r'')
-from tradingBot.mktDataModule.mktData import mktDataMessari
-from tradingBot.exceptions import BadKwargs, SymbolNotSupported
-from unittest import TestCase
-from unittest.mock import patch
 
 
 class TestmktDataBaseMessari(TestCase):
@@ -19,7 +19,7 @@ class TestmktDataBaseMessari(TestCase):
         # Creates the objet of mktDataMessari for tests
 
         self.mktApi = mktDataMessari()
-        
+
     def test_getInterval_pass(self):
 
         # @fn test_getInterval_pass
@@ -31,7 +31,7 @@ class TestmktDataBaseMessari(TestCase):
 
         self.assertIsInstance(res, str)
         self.assertEqual(res, "1m")
-    
+
     def test_getInterval_notTuple(self):
 
         # @fn test_getInterval_notTuple
@@ -40,7 +40,7 @@ class TestmktDataBaseMessari(TestCase):
         interval = ("1m")
 
         self.assertRaises(BadKwargs, self.mktApi._getIntvl, interval)
-    
+
     def test_getInterval_notsupported(self):
 
         # @fn test_getInterval_notTuple
@@ -49,7 +49,7 @@ class TestmktDataBaseMessari(TestCase):
         interval = (1, "b")
 
         self.assertRaises(BadKwargs, self.mktApi._getIntvl, interval)
-    
+
     @patch("tradingBot.mktDataModule.mktDataMessari.requests.get")
     def test_makeRequest_failed(self, mock_get):
 
@@ -79,15 +79,37 @@ class TestmktDataBaseMessari(TestCase):
         mock_get.return_value.ok = True
         mock_get.return_value.json.return_value = {
             'status': {
-                'elapsed': 1, 
-                'timestamp': '2020-12-13T17:26:11.460278606Z'}, 
+                'elapsed': 1,
+                'timestamp': '2020-12-13T17:26:11.460278606Z'},
             'data': {
-                'id': '1e31218a-e44e-4285-820c-8282ee222035', 
-                'symbol': 'BTC', 
-                'name': 'Bitcoin', 
-                'slug': 'bitcoin', 
-                '_internal_temp_agora_id': '9793eae6-f374-46b4-8764-c2d224429791', 
-                'market_data': {'price_usd': 19251.928116954863, 'price_btc': 1, 'price_eth': 32.54329783816044, 'volume_last_24_hours': 26404427915.745407, 'real_volume_last_24_hours': 2821586878.574894, 'volume_last_24_hours_overstatement_multiple': 9.358006346089034, 'percent_change_usd_last_24_hours': 4.083197252359355, 'percent_change_btc_last_24_hours': 0, 'percent_change_eth_last_24_hours': -2.066221233846833, 'ohlcv_last_1_hour': {'open': 19364.710768825335, 'high': 19394.7818061678, 'low': 19234.418887805783, 'close': 19252.244135858462, 'volume': 110769862.989714}, 'ohlcv_last_24_hour': {'open': 18402.4849636486, 'high': 19421.861914732428, 'low': 18378.73319300713, 'close': 19251.928116954852, 'volume': 3308675693.6470127}, 'last_trade_at': '2020-12-13T17:26:08.526Z'}}}
+                'id': '1e31218a-e44e-4285-820c-8282ee222035',
+                'symbol': 'BTC',
+                'name': 'Bitcoin',
+                'slug': 'bitcoin',
+                '_internal_temp_agora_id': '9793eae6-f374-46b4-8764-c2d224429791',
+                'market_data': {
+                    'price_usd': 19251.928116954863,
+                    'price_btc': 1,
+                    'price_eth': 32.54329783816044,
+                    'volume_last_24_hours': 26404427915.745407,
+                    'real_volume_last_24_hours': 2821586878.574894,
+                    'volume_last_24_hours_overstatement_multiple': 9.358006346089034,
+                    'percent_change_usd_last_24_hours': 4.083197252359355,
+                    'percent_change_btc_last_24_hours': 0,
+                    'percent_change_eth_last_24_hours': -2.066221233846833,
+                    'ohlcv_last_1_hour': {
+                        'open': 19364.710768825335, 
+                        'high': 19394.7818061678, 
+                        'low': 19234.418887805783, 
+                        'close': 19252.244135858462, 
+                        'volume': 110769862.989714},
+                    'ohlcv_last_24_hour': {
+                        'open': 18402.4849636486, 
+                        'high': 19421.861914732428, 
+                        'low': 18378.73319300713, 
+                        'close': 19251.928116954852, 
+                        'volume': 3308675693.6470127},
+                    'last_trade_at': '2020-12-13T17:26:08.526Z'}}}
 
         ret = self.mktApi._makeRequest(baseUrl=baseUrl, params=params)
 
@@ -120,39 +142,39 @@ class TestmktDataBaseMessari(TestCase):
         pair = "USDT"
 
         mock_makeRequest.return_value = {
-            'status': {'elapsed': 1, 'timestamp': '2020-12-12T20:10:17.629637446Z'}, 
+            'status': {'elapsed': 1, 'timestamp': '2020-12-12T20:10:17.629637446Z'},
             'data': {
-                'id': '1e31218a-e44e-4285-820c-8282ee222035', 
-                'symbol': 'BTC', 
-                'name': 'Bitcoin', 
-                'slug': 'bitcoin', 
-                '_internal_temp_agora_id': '9793eae6-f374-46b4-8764-c2d224429791', 
+                'id': '1e31218a-e44e-4285-820c-8282ee222035',
+                'symbol': 'BTC',
+                'name': 'Bitcoin',
+                'slug': 'bitcoin',
+                '_internal_temp_agora_id': '9793eae6-f374-46b4-8764-c2d224429791',
                 'market_data': {
-                    'price_usd': 18787.516269557786, 
-                    'price_btc': 1, 
-                    'price_eth': 33.033758780867544, 
-                    'volume_last_24_hours': 21541046653.29936, 
-                    'real_volume_last_24_hours': 2167895311.455069, 
-                    'volume_last_24_hours_overstatement_multiple': 9.936386936895596, 
-                    'percent_change_usd_last_24_hours': 4.478316857197042, 
-                    'percent_change_btc_last_24_hours': 0, 
-                    'percent_change_eth_last_24_hours': 0.4811052880581084, 
+                    'price_usd': 18787.516269557786,
+                    'price_btc': 1,
+                    'price_eth': 33.033758780867544,
+                    'volume_last_24_hours': 21541046653.29936,
+                    'real_volume_last_24_hours': 2167895311.455069,
+                    'volume_last_24_hours_overstatement_multiple': 9.936386936895596,
+                    'percent_change_usd_last_24_hours': 4.478316857197042,
+                    'percent_change_btc_last_24_hours': 0,
+                    'percent_change_eth_last_24_hours': 0.4811052880581084,
                     'ohlcv_last_1_hour': {
-                        'open': 18734.633471226873, 
-                        'high': 18864.156606732628, 
-                        'low': 18720.350693536977, 
-                        'close': 18787.14026126218, 
-                        'volume': 178416948.82255214}, 
+                        'open': 18734.633471226873,
+                        'high': 18864.156606732628,
+                        'low': 18720.350693536977,
+                        'close': 18787.14026126218,
+                        'volume': 178416948.82255214},
                     'ohlcv_last_24_hour': {
-                        'open': 18031.28122162749, 
-                        'high': 18860.940305013737, 
-                        'low': 17925.401779664964, 
-                        'close': 18787.51626955779, 
+                        'open': 18031.28122162749,
+                        'high': 18860.940305013737,
+                        'low': 17925.401779664964,
+                        'close': 18787.51626955779,
                         'volume': 2512413445.480152},
                     'last_trade_at': '2020-12-12T20:10:15.623Z'
-                    }
                 }
             }
+        }
 
         res = self.mktApi.getCurData(coin=coin, pair=pair)
 
@@ -166,8 +188,8 @@ class TestmktDataBaseMessari(TestCase):
                 'volume24Hr': 21541046653.29936,
                 'percentChangeLast24': 9.936386936895596,
                 'timestamp': 1607803817629
-                }]
-            }
+            }]
+        }
 
         self.assertDictEqual(res, expectedRes)
 
@@ -212,28 +234,50 @@ class TestmktDataBaseMessari(TestCase):
                 'low': 493.72,
                 'volume': 1087062.88474,
                 'timestamp': 1606435200000
-                }]
-            }
+            }]
+        }
 
         mock_makeRequest.return_value = {
             'status': {
-                'elapsed': 3, 
+                'elapsed': 3,
                 'timestamp': '2020-12-12T19:11:31.295862202Z'
-                }, 
+            },
             'data': {
-                'market_id': 'c8db0d97-2d3b-4206-8279-2e9ca48db163', 
-                'market_name': 'binance eth-usdt', 
-                'market_slug': 'binance-eth-usdt', 
-                'class': 'spot', 
-                'is_included_in_messari_price': True, 
-                'parameters': {'start': '2020-11-26T16:54:20Z', 'end': '2020-11-27T20:41:00Z', 'interval': '1d', 'order': 'ascending', 'format': 'json', 'timestamp_format': 'unix-milliseconds', 'columns': ['timestamp', 'open', 'high', 'low', 'close', 'volume'], 'market_key': 'binance-eth-usdt', 'market_id': 'c8db0d97-2d3b-4206-8279-2e9ca48db163'}, 
-                'schema': {'metric_id': 'price', 'description': 'Open, high, low, close, and volume for the market, specified in units of the quote asset', 'values_schema': {'timestamp': 'Time in milliseconds since the epoch (1 January 1970 00:00:00 UTC)', 'open': 'The price of the asset at the beginning of the specified interval in US dollars.', 'high': 'The highest price of the asset during the specified interval in US dollars.', 'low': 'The highest price of the asset during the specified interval in US dollars', 'close': 'The price of the asset at the end of the specified interval in US dollars.', 'volume': 'The total volume traded during the specified interval.'}, 'minimum_interval': '1m', 'first_available': '2017-10-27T21:49:28Z', 'last_available': None, 'source_attribution': [{'name': 'Kaiko', 'url': 'https://www.kaiko.com/'}]}, 
+                'market_id': 'c8db0d97-2d3b-4206-8279-2e9ca48db163',
+                'market_name': 'binance eth-usdt',
+                'market_slug': 'binance-eth-usdt',
+                'class': 'spot',
+                'is_included_in_messari_price': True,
+                'parameters': {
+                    'start': '2020-11-26T16:54:20Z',
+                    'end': '2020-11-27T20:41:00Z',
+                    'interval': '1d',
+                    'order': 'ascending',
+                    'format': 'json',
+                    'timestamp_format': 'unix-milliseconds',
+                    'columns': ['timestamp', 'open', 'high', 'low', 'close', 'volume'],
+                    'market_key': 'binance-eth-usdt',
+                    'market_id': 'c8db0d97-2d3b-4206-8279-2e9ca48db163'},
+                'schema': {
+                    'metric_id': 'price',
+                    'description': 'Open, high, low, close, and volume for the market, specified in units of the quote asset',
+                    'values_schema': {
+                        'timestamp': 'Time in milliseconds since the epoch (1 January 1970 00:00:00 UTC)',
+                        'open': 'The price of the asset at the beginning of the specified interval in US dollars.',
+                        'high': 'The highest price of the asset during the specified interval in US dollars.',
+                        'low': 'The highest price of the asset during the specified interval in US dollars',
+                        'close': 'The price of the asset at the end of the specified interval in US dollars.',
+                        'volume': 'The total volume traded during the specified interval.'},
+                    'minimum_interval': '1m',
+                    'first_available': '2017-10-27T21:49:28Z',
+                    'last_available': None,
+                    'source_attribution': [{'name': 'Kaiko', 'url': 'https://www.kaiko.com/'}]},
                 'values': [[1606435200000, 519.83, 530.62, 493.72, 518.68, 1087062.88474]]
-                }
             }
-        
-        res = self.mktApi.OCHLData(coin=coin, pair=pair, \
-            start=start, end=end, interval=interval)
+        }
+
+        res = self.mktApi.OCHLData(coin=coin, pair=pair,
+                                   start=start, end=end, interval=interval)
 
         self.assertDictEqual(res, expectedRes)
 
@@ -242,14 +286,16 @@ class TestmktDataBaseMessari(TestCase):
         # @fn test_checkCond_coin_not_found
         # test _checkCond method with a non existing coin
 
-        self.assertRaises(SymbolNotSupported, self.mktApi._checkCond, coin="ADA", pair="BTC")
+        self.assertRaises(SymbolNotSupported,
+                          self.mktApi._checkCond, coin="ADA", pair="BTC")
 
     def test_checkCond_pair_not_found(self):
 
         # @fn test_checkCond_coin_not_found
         # test _checkCond method with a non existing pair
 
-        self.assertRaises(SymbolNotSupported, self.mktApi._checkCond, coin="BTC", pair="ADA")
+        self.assertRaises(SymbolNotSupported,
+                          self.mktApi._checkCond, coin="BTC", pair="ADA")
 
     def test_checkCond_coin_found(self):
 
@@ -267,4 +313,4 @@ class TestmktDataBaseMessari(TestCase):
 
         res = self.mktApi._timeUnix(timestamp="2020-12-12T20:10:17.629637446Z")
 
-        self.assertEqual(res, 1607803817629)    
+        self.assertEqual(res, 1607803817629)
