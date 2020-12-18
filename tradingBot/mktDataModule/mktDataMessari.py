@@ -2,12 +2,16 @@
 # mktData implementation for Messari API, based in mktData interface
 # @author Angel Avalos with the big support of Yael Martinez
 
-from tradingBot.mktDataModule.mktDataINF import mktDataINF
+
 import datetime
 import requests
+import sys
+import pytz
 
-# TODO import a file containing all available coins // all available fiats
+sys.path.insert(0, r'')
 
+from tradingBot.exceptions import BadKwargs, SymbolNotSupported
+from tradingBot.mktDataModule.mktDataINF import mktDataINF
 from tradingBot.resources.globals import symbolMap
 
 
@@ -32,10 +36,9 @@ class mktDataBaseMessari(mktDataINF):
 
         if not response.ok:
             # TODO Make logger message critical failed request
-            # TODO RAISE ERROR
-            print(response.json())
+            #print(response.json())
             return False
-
+            
         return response.json()
 
     def checkConnection(self):
@@ -65,13 +68,13 @@ class mktDataBaseMessari(mktDataINF):
         # @return interval constructed as a letter and the number (e.g., 1d = 1 day)
 
         if not isinstance(timeframe, tuple):
-            # TODO RAISE ERROR TIME FRAME IS NOT A TUPLE
-            return False
+            
+            raise(BadKwargs("Time interval is not a Tuple"))
 
         number, timeInterval = timeframe
         if timeInterval[0] not in "mhwd":
-            # TODO RAISE ERROR TimeInterval not in defined intervals
-            return False
+            
+            raise(BadKwargs("Time frame not in supported time frames"))
         timeInterval = timeInterval[0]
 
         return str(number) + timeInterval
@@ -89,15 +92,15 @@ class mktDataBaseMessari(mktDataINF):
         coin, pair, *_ = [kwargs[key] for key in kwargs.keys()]
 
         if coin not in [crypto["symbol"] for crypto in symbolMap["crypto"]]:
-            # TODO RAISE ERROR COIN REQUESTED NOT IN AVAILABLE COINS
-            return False
+            
+            raise(SymbolNotSupported(coin))
         if pair is None:
             pass
         else:
             if pair not in [crypto["symbol"] for crypto in symbolMap["crypto"]] + \
                     [fiat["symbol"] for fiat in symbolMap["fiat"]]:
                 # TODO RAISE ERROR PAIR REQUESTED NOT IN AVAILABLE COINS
-                return False
+                raise(SymbolNotSupported(pair))
         return True
 
     def _parseResponse(self, func=None, info=None):
@@ -168,8 +171,9 @@ class mktDataBaseMessari(mktDataINF):
         # @param timestamp The timestamp in the default Messari format
         # @return timeUnix Timestamp in Unix format with 13 digits
 
-        x = datetime.datetime.strptime(timestamp[:-4], '%Y-%m-%dT%H:%M:%S.%f')
-        timeUnix = int(x.timestamp() * 1000)
+        d = datetime.datetime.strptime(timestamp[:-4], '%Y-%m-%dT%H:%M:%S.%f')
+        d = pytz.timezone('UTC').localize(d)
+        timeUnix = int(d.timestamp() * 1000)
         return timeUnix
 
     def getCurData(self, **kwargs):
@@ -244,15 +248,16 @@ class mktDataBaseMessari(mktDataINF):
         # @return json with the information obtained
 
         methodVar = {"coin": None, "pair": None, "exchange": "binance",
-                     "timeframe": None, "start": None, "end": None}
+                     "interval": None, "start": None, "end": None}
 
         methodVar.update(kwargs)
 
-        coin, pair, exchange, timeframe, start, end, * \
+        coin, pair, exchange, interval, start, end, * \
             _ = [methodVar[key] for key in methodVar.keys()]
-
-        start = self._timeStamp(start)
-        end = self._timeStamp(end)
+        
+        timeframe = interval            
+        #start = self._timeStamp(start)
+        #end = self._timeStamp(end)
 
         timeframe = self._getIntvl(timeframe)
         if not timeframe:
@@ -272,6 +277,9 @@ class mktDataBaseMessari(mktDataINF):
         if not res:
             # TODO Logger connection with server down
             return False
+        
+        if len(res["data"]) == 0:
+            return False
 
         parsedInf = self._parseResponse(func="OCHLData", info=res)
         parsedInf["interval"] = timeframe
@@ -284,6 +292,7 @@ if __name__ == "__main__":
 
     o = mktDataBaseMessari()
     o.checkConnection()
+    o._timeUnix(timestamp="2020-12-16T19:35:59.777184057Z")
     o.getCurData(coin="BTC", pair="USDT")
-    o.OCHLData(coin="ETH", pair="USDT", start=(9, 8, 2020),
-               end=(10, 8, 2020), timeframe=(1, "day"))
+    o.OCHLData(coin="ETH", pair="USDT", start=1606409660000,
+               end=1606509660000, interval=(1, "day"))
