@@ -99,7 +99,7 @@ class binanceBaseAPI():
 
     def _parseResponse(self, dataType, data):
 
-        if dataType == "_getOCHLHist":
+        if dataType == "Hist_OCHL":
             res = {
                     "calledAPI": "BINANCE",
                     "start": "",
@@ -111,9 +111,9 @@ class binanceBaseAPI():
             for candle in data:
                 info = {
                     "open": candle[1],
-                    "close": candle[2],
-                    "high": candle[3],
-                    "low": candle[4],
+                    "close": candle[4],
+                    "high": candle[2],
+                    "low": candle[3],
                     "volume": candle[5],
                     "timestamp": candle[0]
                     }
@@ -164,7 +164,7 @@ class binanceBaseAPI():
         symbol = self.__coinPair2Symbol(coin, pair).upper()
 
         data = self.client.get_historical_klines(symbol, interval, start, end)
-        data = self._parseOCHL(self._getOCHLHist.___name__, data)
+        data = self._parseResponse("Hist_OCHL", data)
         data["interval"] = interval
         return data
 

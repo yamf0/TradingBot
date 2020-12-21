@@ -28,4 +28,4 @@ class SymbolNotSupported(Exception):
         self.symbol = symbol
 
     def __str__(self):
-        return "SymbolNotSupported, {} symbol is not in supported"
+        return "SymbolNotSupported, {} symbol is not in supported symbols".format(self.symbol)
