@@ -25,9 +25,10 @@ class binanceBaseAPI():
 
     def __init__(self):
         
-        self.rPath = os.getcwd()
-        
-        keyPath = os.path.join(self.rPath, "tradingBot", "access_keys", "API_KEY.json")
+        self._rPath = os.getcwd()
+        self._OCHLdict = {}
+
+        keyPath = os.path.join(self._rPath, "tradingBot", "access_keys", "API_KEY.json")
         key, secret = self.__importKey(keyPath)
         self.client = self._mkClient(key, secret)
 
@@ -96,9 +97,9 @@ class binanceBaseAPI():
 
         return interval
 
-    def _parseResponse(self, funcName, data):
+    def _parseResponse(self, dataType, data):
 
-        if funcName == "_getOCHLHist":
+        if dataType == "_getOCHLHist":
             res = {
                     "calledAPI": "BINANCE",
                     "start": "",
@@ -120,11 +121,11 @@ class binanceBaseAPI():
             res["start"] = data[0][0]
             res["end"] = data[-1][0]
 
-        elif funcName == "__processSocketMsg":
+        elif dataType == "__processSocketMsg":
             
             return data
 
-        else:
+        elif "kline_" in dataType.split("@")[-1]:
             candleInfo = data["k"]
             res = {
                     "calledAPI": "BINANCE",
@@ -145,7 +146,7 @@ class binanceBaseAPI():
             res["start"] = candleInfo["t"]
             res["end"] = candleInfo["t"]
             res["interval"] = candleInfo["i"]
-        
+ 
         return res
             
     def _getOCHLHist(self, coin, pair, interval, start, end=None):
@@ -188,8 +189,8 @@ class binanceBaseAPI():
     def __processMultiSocketMsg(self, msg):
           
         print("stream {}".format(msg["stream"]))
-        data = self._parseResponse(self.__processMultiSocketMsg.__name__, msg["data"])
-        print(data)
+        data = self._parseResponse(msg["stream"], msg["data"])
+        setattr(self, self._OCHLdict[msg["stream"]], data)
         # do something
 
     def candleSocket(self, binSocket, symbol, interval=None):
@@ -227,6 +228,10 @@ class binanceBaseAPI():
             else:
                 res.append(symbol + "@" + sType)
 
+            varName = (stream["coin"] + stream["pair"] + stream["type"]).lower()
+            setattr(self, varName, {})
+            self._OCHLdict[res[-1]] = varName
+
         return res
 
     def multiSocket(self, binSocket, streams):
@@ -247,7 +252,7 @@ if __name__ == "__main__":
     bAPI = binanceAPI()
     socket = bAPI.con2Socket()
     streams = [{"coin": "BTC", "pair": "USDT", "type": "OCHL", "interval": (1, "m")},
-    {"coin": "BTC", "pair": "USDT", "type": "OCHL", "interval": (15, "m")}]
+    {"coin": "ETH", "pair": "USDT", "type": "OCHL", "interval": (1, "m")}]
 
     bAPI.multiSocket(socket, streams)
     #dat = bAPI._getOCHLHist(coin="BTC", pair="USDT", interval=(1, "h"), start=1608390000000)
