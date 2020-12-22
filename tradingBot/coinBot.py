@@ -86,8 +86,6 @@ class coinBotBase():
                 intervalName = fileInterval.split(".")[0]
                 self.dbOCHL[intervalName] = dat
 
-    
-        """ THIS MIGHT CHANGE"""
         for key, val in self.dbOCHL.items():
             self.listOfTmstp[key] = []
             for candle in val["data"]:
@@ -111,7 +109,7 @@ class coinBotBase():
         if not start:
             start = self.dbOCHL[interval]["end"]
 
-        data = self.binApi._getOCHLHist(self.coin, self.pair, reqInterval, start + 100, end)
+        data = self.binApi._getOCHLHist(self.coin, self.pair, reqInterval, start, end)
 
         if not data:
             #TODO raise exception data not obtained
@@ -119,8 +117,10 @@ class coinBotBase():
         else:
             for dat in data["data"]:
                self.listOfTmstp[interval] += [dat["timestamp"]]
-        
+
+
             self.dbOCHL[interval]["end"] = data["end"]
+            self.dbOCHL[interval]["data"] = self.dbOCHL[interval]["data"][:-1]
             self.dbOCHL[interval]["data"] = self.dbOCHL[interval]["data"] + data["data"]
             self._saveOCHL(interval)
             return True
@@ -153,27 +153,37 @@ class coinBotBase():
         if not data:
             return
         self.curPrice = float(data["data"][0]["close"])
-        
+        volume = float(data["data"][0]["volume"])
         for key in self.listOfTmstp.keys():
                
             latestTmstp, missCandles = self._missCandles(tmstp, key)
             if missCandles > 2:
                 print("GET MISSING OCHL")
-                self._getOCHL(key, tmstp)
+                self._getOCHL(key, end=tmstp)
 
         for key, val in self.dbOCHL.items():
             curCandle = val["data"][-1]
             if tmstp >= val["end"] and tmstp < val["end"] + self.intervals[key] * 1000:
+                
+                if "prevVol" not in curCandle.keys():
+                    curCandle["prevVol"] = 0
+                    curCandle["prevtmstp"] = data["data"][0]["timestamp"]
+                if data["data"][0]["timestamp"] != curCandle["prevtmstp"]:
+                    curCandle["prevVol"] = 0
+                    curCandle["prevtmstp"] = data["data"][0]["timestamp"]
+                 
                 if int(tmstp / 1000) * 1000 == val["end"]:
                     curCandle["open"] = str(self.curPrice)
                     curCandle["high"] = str(self.curPrice)
                     curCandle["low"] = str(self.curPrice)
                     curCandle["close"] = str(self.curPrice)  
                     curCandle["volume"] = data["data"][0]["volume"]
+                    curCandle["prevVol"] = volume
+                    curCandle["status"] = "open"
                 else:
-                    
-                    #TODO VOLUME
-                    #curCandle["volume"] = str(float(curCandle["volume"]) + float(data["data"][0]["volume"]))
+
+                    curCandle["volume"] = str(float(curCandle["volume"]) + (float(data["data"][0]["volume"]) - curCandle["prevVol"]))
+                    curCandle["prevVol"] = volume
                     if float(curCandle["high"]) < self.curPrice:
                         curCandle["high"] = str(self.curPrice)
                     elif float(curCandle["low"]) > self.curPrice:
@@ -182,7 +192,7 @@ class coinBotBase():
                 self._getOCHL(key, start=tmstp - self.intervals[key] * 1000, end=tmstp)
                 continue 
             curCandle["close"] = str(self.curPrice)       
-        
+            
             print("update at {} initial Tmspt {} real tmstp {} dict {}".format(
                 key, val["data"][-1]["timestamp"], tmstp, curCandle))
 
@@ -246,8 +256,8 @@ class counter():
         return tmstp
 
     def __getTmstp(self):
-        tmstp = time.time() * 1000
-        return int(tmstp) 
+        tmstp = int(time.time()) * 1000
+        return tmstp 
 
     def __setTmstp(self, tmstp):
         self._tmstp = tmstp
