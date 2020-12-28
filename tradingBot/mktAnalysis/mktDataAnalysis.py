@@ -181,11 +181,9 @@ class mktDataAnalysis():
                     ax1.plot(indData['timestamp'], indData['value'], linestyle='--', \
                         color=randColor(x), label=ind['indicator'])
                     x += 1
-            
-            
-        ax1.set_title("BTC Price. Interval: " + interval, color='white')
+     
+        ax1.set_title("BTC Price USD. Interval: " + interval, color='white')
         ax1.legend()
-
         ax1.grid(True, color="#555555")
         ax1.set_axisbelow(True)
         ax1.set_facecolor("black")
