@@ -24,7 +24,7 @@ class mktDataAnalysis():
         for line in indic['indicators']:
             if line["id"] == id:
                 return False
-            if indicator == line['indicator'] and interval == line['interval']:
+            if indicator == "RSI" and interval == line['interval']:
                 return False 
         newInd = {
         "indicator": indicator,
