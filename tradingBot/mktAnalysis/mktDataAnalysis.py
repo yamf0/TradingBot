@@ -13,44 +13,55 @@ import random
 class mktDataAnalysis():
     
     getData = mktDataBaseMessari()
-
-    def __init__(self):
-        pass
+    paths = {"mainPath": "tradingBot\dataBase\{}\{}", "subPaths": [
+        {"id": "indicators", "subPath": "\indicators\indic.json"},
+        {"id": "intervals", "subPath": "\intervals\{}.json"}
+    ]}
+    
+    def __init__(self, coin=None, pair=None):
+        
+        mainPath = self.paths['mainPath'].format(coin.lower(), pair.lower())
+        self.indicPath = mainPath + self.paths['subPaths'][0]["subPath"]
+        self.DBPath = mainPath + self.paths['subPaths'][1]["subPath"]
+        self.indic = self.openInd()
 
     def newIndicator(self, indicator=None, period=None, interval=None):
-        indic = self.openInd()
+        if not isinstance(period, int):
+            return False 
         interval = self.getData._getIntvl(timeframe=interval)
         id = str(period) + indicator + interval
-        for line in indic['indicators']:
+        for line in self.indic['indicators']:
             if line["id"] == id:
                 return False
-            if indicator == "RSI" and interval == line['interval']:
+            if indicator == "RSI" and indicator == \
+                    line['indicator'] and interval == line['interval']:
                 return False 
         newInd = {
-        "indicator": indicator,
-        "interval": interval,
-        "period": period,
-        "id": id,
-        "data": []
+            "indicator": indicator,
+            "interval": interval,
+            "period": period,
+            "id": id,
+            "data": []
         }
         newInd['data'] = self.actlIndData(indicator=indicator, period=period, interval=interval)
-        indic["indicators"].append(newInd)
-        self.closeInd(indic=indic)      
+        if not newInd['data']:
+            return False
+        self.indic["indicators"].append(newInd)
+        self.closeInd(indic=self.indic)      
 
     def delIndicator(self, id=None):
-        indic = self.openInd()
         newInd = {"indicators": []}
-        for line in indic['indicators']:
+        for line in self.indic['indicators']:
             if not line["id"] == id:
-                newInd["indicators"].append(line)    
+                newInd["indicators"].append(line)
+        self.indic = newInd
         self.closeInd(indic=newInd)                     
 
     def actlIndicators(self):
-        indic = self.openInd()
-        for ind in indic['indicators']:
+        for ind in self.indic['indicators']:
             ind['data'] = self.actlIndData(indicator=ind['indicator'], \
                 period=ind['period'], interval=ind['interval'])
-        self.closeInd(indic=indic)  
+        self.closeInd(indic=self.indic)  
 
     def actlIndData(self, indicator=None, period=None, interval=None):
         if "EMA" == indicator:
@@ -61,13 +72,21 @@ class mktDataAnalysis():
             data = self.indSMA(period=period, interval=interval)     
         elif "WMA" == indicator:
             data = self.indWMA(period=period, interval=interval)        
+        else:
+            return False
         return data
     
     def viewIndicators(self):
-        indic = self.openInd()
-        for ind in indic['indicators']:
-            del ind['data']
-        data = pd.DataFrame.from_dict(indic['indicators'], orient='columns')
+        indica = {"indicators": []}
+        for line in self.indic['indicators']:
+            newInd = {
+                "indicator": line['indicator'],
+                "interval": line['interval'],
+                "period": line['period'],
+                "id": line['id'],
+            }            
+            indica["indicators"].append(newInd)
+        data = pd.DataFrame.from_dict(indica['indicators'], orient='columns')
         data = data.sort_values(by=['interval', 'indicator', 'period'])
         data = data.reindex(columns=['interval', 'indicator', 'period', 'id'])
         print(data.to_string(index=False))
@@ -134,22 +153,22 @@ class mktDataAnalysis():
             end = today
         data = self.getData.OCHLData(coin="BTC", pair="USDT", start=start, end=end, interval=interval)
         interval = self.getData._getIntvl(timeframe=interval)
-        with open('tradingBot\mktAnalysis\dataBase\{}.json'.format(interval), 'w') as f:
+        with open(self.DBPath.format(interval), 'w') as f:
             json.dump(data, f, indent=2)
     
     def openDB(self, interval=None):
-        with open(r'tradingBot\mktAnalysis\dataBase\{}.json'.format(interval)) as f:
+        with open(self.DBPath.format(interval), 'r') as f:
             data = json.load(f)
         data = pd.DataFrame.from_dict(data["data"], orient='columns')
         return data
     
     def openInd(self):
-        with open(r'tradingBot\mktAnalysis\indic.json') as f:
+        with open(self.indicPath, 'r') as f:
             indic = json.load(f)
         return indic
     
     def closeInd(self, indic=None):
-        with open('tradingBot\mktAnalysis\indic.json', 'w') as f:
+        with open(self.indicPath, 'w') as f:
             json.dump(indic, f, indent=1) 
     
     def printGraph(self, interval=None):
@@ -162,7 +181,6 @@ class mktDataAnalysis():
             #color = (r, g, b) 
             color = colors[x]
             return color
-        indic = self.openInd()
         interval = self.getData._getIntvl(timeframe=interval)
         data = self.openDB(interval=interval)
         flag = False
@@ -171,15 +189,16 @@ class mktDataAnalysis():
         ax1 = plt.subplot(211)
         ax1.plot(data['timestamp'], data['close'], color='lightgray', label='Price USD')
 
-        for ind in indic['indicators']:
+        for ind in self.indic['indicators']:
             indData = pd.DataFrame.from_dict(ind["data"], orient='columns')
             if ind['interval'] == interval:
                 if ind['indicator'] == "RSI":
                     indRSIData = indData
+                    indRSIPeriod = str(ind['period'])
                     flag = True
                 else:
                     ax1.plot(indData['timestamp'], indData['value'], linestyle='--', \
-                        color=randColor(x), label=ind['indicator'])
+                        color=randColor(x), label=ind['indicator'] + " " + str(ind['period']))
                     x += 1
      
         ax1.set_title("BTC Price USD. Interval: " + interval, color='white')
@@ -202,7 +221,7 @@ class mktDataAnalysis():
             ax2.axhline(80, linestyle='--', alpha=0.5, color='#00ff00')
             ax2.axhline(90, linestyle='--', alpha=0.5, color='#ffaa00')
             ax2.axhline(100, linestyle='--', alpha=0.5, color='#ff0000')
-            ax2.set_title("RSI Value", color="white")
+            ax2.set_title("RSI Value" + " " + indRSIPeriod, color="white")
             ax2.grid(False)
             ax2.set_axisbelow(True)
             ax2.set_facecolor("black")
@@ -214,7 +233,7 @@ class mktDataAnalysis():
 
 if __name__ == "__main__":
       
-    y = mktDataAnalysis()
+    y = mktDataAnalysis(coin="BTC", pair="USDT")
     y.delIndicator(id="15WMA1h")
     y.newIndicator(indicator="WMA", period=15, interval=(1, "hour"))
     y.actlIndicators()
