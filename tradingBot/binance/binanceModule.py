@@ -251,10 +251,14 @@ class binanceAPI(binanceBaseAPI):
 if __name__ == "__main__":
     bAPI = binanceAPI()
     socket = bAPI.con2Socket()
+    data = bAPI._getOCHLHist("BTC", "USDT", (30, "m"), 1610398800000, int(time.time()) * 1000)
+    """with open("1H.json", "w") as f:
+        json.dump(data, f, indent=2)"""
+
     streams = [{"coin": "BTC", "pair": "USDT", "type": "OCHL", "interval": (1, "m")},
     {"coin": "ETH", "pair": "USDT", "type": "OCHL", "interval": (1, "m")}]
 
     bAPI.multiSocket(socket, streams)
-    #dat = bAPI._getOCHLHist(coin="BTC", pair="USDT", interval=(1, "h"), start=1608390000000)
-    #print(dat)
+    """dat = bAPI._getOCHLHist(coin="BTC", pair="USDT", interval=(1, "h"), start=1608390000000)
+    print(dat)"""
 

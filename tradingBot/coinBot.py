@@ -45,9 +45,9 @@ class coinBotBase():
         self.binApi = binanceAPI
 
         self.dbPath = os.path.join(self.rPath, "tradingBot", \
-            "Data", self.coin, self.pair)
+            "Data", self.coin, self.pair, "candles")
 
-        self.dbOCHL = {}
+        self.tmfrmVar = []
         self.listOfTmstp = {}
         self.intervals = {"5m": 300, "15m": 900,
                           "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
@@ -76,7 +76,7 @@ class coinBotBase():
 
         print("we got msg {} at tmstp {}".format(self.coin, tmstp))
         self._getCurPrice(tmstp)
-
+        
     def _loadDbOCHL(self):
         #TODO LOAD ONLY OCHL DATA JSONS AND NOTHING MORE
         filenames = [candlesFiles for _, _, candlesFiles in os.walk(self.dbPath)][0]
@@ -84,17 +84,20 @@ class coinBotBase():
             with open(os.path.join(self.dbPath, fileInterval), "r") as f:
                 dat = json.load(f)
                 intervalName = fileInterval.split(".")[0]
-                self.dbOCHL[intervalName] = dat
+                setattr(self, intervalName, dat)
+                self.tmfrmVar.append(intervalName)
+                #self.dbOCHL[intervalName] = dat
 
-        for key, val in self.dbOCHL.items():
-            self.listOfTmstp[key] = []
-            for candle in val["data"]:
-                self.listOfTmstp[key] += [candle["timestamp"]]
+        for tmfrm in self.tmfrmVar:
+            self.listOfTmstp[tmfrm] = []
+            dat = getattr(self, tmfrm)
+            for candle in dat["data"]:
+                self.listOfTmstp[tmfrm] += [candle["timestamp"]]
                     
     def _saveOCHL(self, intvlDb):
-         
+        currDb = getattr(self, intvlDb)
         with open(os.path.join(self.dbPath, intvlDb + ".json"), "w") as f:
-            json.dump(self.dbOCHL[intvlDb], f, indent=2)
+            json.dump(currDb, f, indent=2)
 
     def _getIntvl(self, interval):
         
@@ -105,9 +108,9 @@ class coinBotBase():
     def _getOCHL(self, interval, start=None, end=None):
 
         reqInterval = self._getIntvl(interval)
-
+        currDB = getattr(self, interval)
         if not start:
-            start = self.dbOCHL[interval]["end"]
+            start = currDB["end"]
 
         data = self.binApi._getOCHLHist(self.coin, self.pair, reqInterval, start, end)
 
@@ -118,10 +121,10 @@ class coinBotBase():
             for dat in data["data"]:
                self.listOfTmstp[interval] += [dat["timestamp"]]
 
-
-            self.dbOCHL[interval]["end"] = data["end"]
-            self.dbOCHL[interval]["data"] = self.dbOCHL[interval]["data"][:-1]
-            self.dbOCHL[interval]["data"] = self.dbOCHL[interval]["data"] + data["data"]
+            currDB["end"] = data["end"]
+            currDB["data"] = currDB["data"][:-1]
+            currDB["data"] = currDB["data"] + data["data"]
+            setattr(self, interval, currDB)
             self._saveOCHL(interval)
             return True
 
@@ -161,9 +164,10 @@ class coinBotBase():
                 print("GET MISSING OCHL")
                 self._getOCHL(key, end=tmstp)
 
-        for key, val in self.dbOCHL.items():
+        for tmfrm in self.tmfrmVar:
+            val = getattr(self, tmfrm)
             curCandle = val["data"][-1]
-            if tmstp >= val["end"] and tmstp < val["end"] + self.intervals[key] * 1000:
+            if (tmstp >= val["end"]) and (tmstp < (val["end"] + self.intervals[tmfrm] * 1000)):
                 
                 if "prevVol" not in curCandle.keys():
                     curCandle["prevVol"] = 0
@@ -189,12 +193,12 @@ class coinBotBase():
                     elif float(curCandle["low"]) > self.curPrice:
                         curCandle["low"] = str(self.curPrice)
             else:
-                self._getOCHL(key, start=tmstp - self.intervals[key] * 1000, end=tmstp)
+                self._getOCHL(tmfrm, start=tmstp - self.intervals[tmfrm] * 1000, end=tmstp)
                 continue 
             curCandle["close"] = str(self.curPrice)       
             
             print("update at {} initial Tmspt {} real tmstp {} dict {}".format(
-                key, val["data"][-1]["timestamp"], tmstp, curCandle))
+                tmfrm, val["data"][-1]["timestamp"], tmstp, curCandle))
 
 
 class coinBot(coinBotBase):
