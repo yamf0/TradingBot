@@ -19,14 +19,16 @@ class mktDataAnalysis():
         {"id": "intervals", "subPath": "\intervals"}
     ]}
     
-    def __init__(self, coin=None, pair=None):
+    def __init__(self, coin=None, pair=None, indicators=None):
         
         mainPath = self.paths['mainPath'].format(coin.lower(), pair.lower())
         self.indicPath = mainPath + self.paths['subPaths'][0]["subPath"]
         self.DBPath = mainPath + self.paths['subPaths'][1]["subPath"]
-        self.delData = 0
         self.getIndInterval = []
         self.openInd()
+        for indic in indicators:
+            self.newIndicator(indicator=indic["indicator"], period=indic["period"],\
+                interval=indic["interval"])
 
     def newIndicator(self, indicator=None, period=None, interval=None):
         if not isinstance(period, int):
@@ -72,6 +74,12 @@ class mktDataAnalysis():
                     newInd["indicators"].append(line)
             setattr(self, indicFiles["indicator_int"], newInd)
         self.closeInd()                     
+
+    def delAllIndicator(self):
+        for indicFiles in self.getIndInterval:
+            newInd = {"indicators": []}
+            setattr(self, indicFiles["indicator_int"], newInd)
+        self.closeInd() 
 
     def actlIndicators(self):
         for indicFiles in self.getIndInterval:
@@ -354,11 +362,21 @@ class mktDataAnalysis():
 
 if __name__ == "__main__":
       
-    y = mktDataAnalysis(coin="BTC", pair="USDT")
+    y = mktDataAnalysis(coin="BTC", pair="USDT", indicators=[
+        {"indicator": "EMA", "period": 17, "interval": (1, "day")},
+        {"indicator": "RSI", "period": 17, "interval": (1, "day")},
+        {"indicator": "SMA", "period": 17, "interval": (1, "day")},
+        {"indicator": "WMA", "period": 17, "interval": (1, "day")},
+        {"indicator": "EMA", "period": 17, "interval": (1, "hour")},
+        {"indicator": "RSI", "period": 17, "interval": (1, "hour")},
+        {"indicator": "SMA", "period": 17, "interval": (1, "hour")},
+        {"indicator": "WMA", "period": 17, "interval": (1, "hour")}
+    ])
     y.delIndicator(id="100WMA1h")
     y.newIndicator(indicator="WMA", period=100, interval=(1, "hour"))
     y.actlIndicators()
     y.viewIndicators()
     #y.printGraph(interval=(1, "day"))
     #y.actlDB(interval=(1, "hour"))
+    #y.delAllIndicator()
     
