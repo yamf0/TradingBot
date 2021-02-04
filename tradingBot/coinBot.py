@@ -17,6 +17,7 @@ sys.path.insert(0, r'')
 from tradingBot.mktDataModule.mktData import mktDataCoincp
 from tradingBot.mktDataModule.mktData import mktDataBaseMessari
 from tradingBot.binance.binanceModule import binanceAPI
+from tradingBot.mktAnalysis.mktDataAnalysis import mktDataAnalysis
 
 
 class coinBotBase():
@@ -25,8 +26,10 @@ class coinBotBase():
     # @brief contains the Base class for coinBot
     # @var rPath path relative for TradinBot main folder
     rPath = os.getcwd()
+    intervals = {"5m": 300, "15m": 900,
+                          "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
 
-    def __init__(self, coin, pair, counter, binanceAPI):
+    def __init__(self, coin, pair, counter, binanceAPI, indicators=None):
 
         ## 
         # @fn __init__
@@ -39,24 +42,25 @@ class coinBotBase():
         self.coin = coin
         self.pair = pair
         self.counter = counter
+        self.indicators = indicators
 
         #API objects
-        self.mktDataCoincap = mktDataCoincp()
         self.binApi = binanceAPI
 
         self.dbPath = os.path.join(self.rPath, "tradingBot", \
-            "Data", self.coin, self.pair, "candles")
+            "dataBase", self.coin, self.pair, "intervals")
 
         self.tmfrmVar = []
         self.listOfTmstp = {}
-        self.intervals = {"5m": 300, "15m": 900,
-                          "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
 
         #Load data from db
         self._loadDbOCHL()
         #Check if data is updated
         self._getCurPrice(int(time.time() * 1000))
-        
+         
+        #Create MKT ANALYSIS
+        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, indicators=self.indicators)
+
         self.queue = queue.Queue()
         self.counter.addObsv(self)
 
@@ -277,7 +281,7 @@ if __name__ == "__main__":
     bAPI.multiSocket(socket, streams)
     print(os.getcwd())
     counter = counter(10)
-
-    coinBot("BTC", "USDT", counter, bAPI)
+    indicators = [{"indicator": "EMA", "period": 14, "interval": "1d"}]
+    coinBot("BTC", "USDT", counter, bAPI, indicators=indicators)
        
 
