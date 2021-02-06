@@ -14,8 +14,6 @@ import re
 import sys
 sys.path.insert(0, r'')
 
-from tradingBot.mktDataModule.mktData import mktDataCoincp
-from tradingBot.mktDataModule.mktData import mktDataBaseMessari
 from tradingBot.binance.binanceModule import binanceAPI
 from tradingBot.mktAnalysis.mktDataAnalysis import mktDataAnalysis
 
@@ -27,7 +25,7 @@ class coinBotBase():
     # @var rPath path relative for TradinBot main folder
     rPath = os.getcwd()
     intervals = {"5m": 300, "15m": 900,
-                          "30m": 1800, "1H": 3600, "2H": 7200, "1D": 86400}
+                          "30m": 1800, "1h": 3600, "2h": 7200, "1d": 86400}
 
     def __init__(self, coin, pair, counter, binanceAPI, indicators=None):
 
@@ -59,7 +57,8 @@ class coinBotBase():
         self._getCurPrice(int(time.time() * 1000))
          
         #Create MKT ANALYSIS
-        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, indicators=self.indicators)
+        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBot=self,
+                                           indicators=self.indicators)
 
         self.queue = queue.Queue()
         self.counter.addObsv(self)
@@ -80,6 +79,8 @@ class coinBotBase():
 
         print("we got msg {} at tmstp {}".format(self.coin, tmstp))
         self._getCurPrice(tmstp)
+        #TODO SEND ACT INDICATORS
+        
         
     def _loadDbOCHL(self):
         #TODO LOAD ONLY OCHL DATA JSONS AND NOTHING MORE
@@ -211,8 +212,8 @@ class coinBot(coinBotBase):
     # inherits from CoinBotBase
     # @see CoinBotBase
     
-    def __init__(self, coin, pair, counter, binanceAPI):
-        super().__init__(coin, pair, counter, binanceAPI)
+    def __init__(self, coin, pair, counter, binanceAPI, indicators=None):
+        super().__init__(coin, pair, counter, binanceAPI, indicators=indicators)
 
 #TODO DO WE NEED SOMEWAY TO KILL THE THREAD??
 
@@ -281,7 +282,7 @@ if __name__ == "__main__":
     bAPI.multiSocket(socket, streams)
     print(os.getcwd())
     counter = counter(10)
-    indicators = [{"indicator": "EMA", "period": 14, "interval": "1d"}]
+    indicators = [{"indicator": "EMA", "period": 14, "interval": (1,"d")}]
     coinBot("BTC", "USDT", counter, bAPI, indicators=indicators)
        
 

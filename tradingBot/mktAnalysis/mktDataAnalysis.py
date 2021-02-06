@@ -19,13 +19,23 @@ class mktDataAnalysis():
         {"id": "intervals", "subPath": "\intervals"}
     ]}
     
-    def __init__(self, coin=None, pair=None, indicators=None):
+    def __init__(self, coin=None, pair=None, coinBotObj=None, indicators=None):
         
-        mainPath = self.paths['mainPath'].format(coin.lower(), pair.lower())
+        self.coinBotObj = coinBotObj
+        self.dBIntervals = coinBotObj.tmfrmVar
+
+        mainPath = self.paths['mainPath'].format(coin, pair)
         self.indicPath = mainPath + self.paths['subPaths'][0]["subPath"]
         self.DBPath = mainPath + self.paths['subPaths'][1]["subPath"]
         self.getIndInterval = []
+
+        #TODO IF WE ELIMINATE ALL INDICATORS THEN WHY WE OPEN THEM HERE.
         self.openInd()
+
+        #TODO ACCESS THE ACTUALIZED DB FROM CB
+        for nameDB in self.dBIntervals:
+            setattr(self, nameDB, getattr(self.coinBotObj, nameDB))
+        
         for indic in indicators:
             self.newIndicator(indicator=indic["indicator"], period=indic["period"],\
                 interval=indic["interval"])
@@ -33,6 +43,8 @@ class mktDataAnalysis():
     def newIndicator(self, indicator=None, period=None, interval=None):
         if not isinstance(period, int):
             return False 
+
+        #TODO CHANGE NOT USE MESSARI
         interval = self.getData._getIntvl(timeframe=interval)
         id = str(period) + indicator + interval        
         for indicFiles in self.getIndInterval:
@@ -250,6 +262,8 @@ class mktDataAnalysis():
         return opData, kLines
 
     def actlDB(self, interval=None, start=None, end=None):
+        #TODO CHANGE HERE FOR PING 
+
         if end == None:
             today = datetime.datetime.now()
             today = int(today.timestamp() * 1000)
