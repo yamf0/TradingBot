@@ -171,6 +171,7 @@ class mktDataAnalysis():
             return actData[kLines:]
 
         data = getattr(self, interval)
+        data = pd.DataFrame.from_dict(data["data"], orient='columns')
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -193,6 +194,7 @@ class mktDataAnalysis():
             return actData[kLines:]
 
         data = getattr(self, interval)
+        data = pd.DataFrame.from_dict(data["data"], orient='columns')
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -215,6 +217,7 @@ class mktDataAnalysis():
             return actData[kLines:]
 
         data = getattr(self, interval)
+        data = pd.DataFrame.from_dict(data["data"], orient='columns')
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -243,6 +246,7 @@ class mktDataAnalysis():
 
         weights = list(reversed([(period - n) * period for n in range(period)]))
         data = getattr(self, interval)
+        data = pd.DataFrame.from_dict(data["data"], orient='columns')
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -320,6 +324,7 @@ class mktDataAnalysis():
             return color
         interval = self._getIntvl(timeframe=interval)
         data = getattr(self, interval)
+        data = pd.DataFrame.from_dict(data["data"], orient='columns')
         flag = False
         x = 0
         plt.figure(figsize=(12, 8))
