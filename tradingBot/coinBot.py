@@ -57,7 +57,7 @@ class coinBotBase():
         self._getCurPrice(int(time.time() * 1000))
          
         #Create MKT ANALYSIS
-        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBot=self,
+        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBotObj=self,
                                            indicators=self.indicators)
 
         self.queue = queue.Queue()
@@ -80,8 +80,10 @@ class coinBotBase():
         print("we got msg {} at tmstp {}".format(self.coin, tmstp))
         self._getCurPrice(tmstp)
         #TODO SEND ACT INDICATORS
-        
-        
+        self.mktAnalysis.actlDB()
+        self.mktAnalysis.actlIndicators()
+        print("INDICATORS ACTUALIZED")
+    
     def _loadDbOCHL(self):
         #TODO LOAD ONLY OCHL DATA JSONS AND NOTHING MORE
         filenames = [candlesFiles for _, _, candlesFiles in os.walk(self.dbPath)][0]
@@ -282,7 +284,11 @@ if __name__ == "__main__":
     bAPI.multiSocket(socket, streams)
     print(os.getcwd())
     counter = counter(10)
-    indicators = [{"indicator": "EMA", "period": 14, "interval": (1,"d")}]
+    indicators = [{"indicator": "EMA", "period": 14, "interval": (1, "d")},
+                  {"indicator": "EMA", "period": 14, "interval": (1, "h")},
+                  {"indicator": "SMA", "period": 14, "interval": (1, "h")},
+                  {"indicator": "WMA", "period": 14, "interval": (1, "h")},
+                  {"indicator": "RSI", "period": 14, "interval": (1, "h")}]
     coinBot("BTC", "USDT", counter, bAPI, indicators=indicators)
        
 

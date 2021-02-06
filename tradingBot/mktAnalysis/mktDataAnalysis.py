@@ -34,8 +34,8 @@ class mktDataAnalysis():
             setattr(self, nameDB, getattr(self.coinBotObj, nameDB))
         
         #TODO IF WE ELIMINATE ALL INDICATORS THEN WHY WE OPEN THEM HERE.
-        self.openInd()
-
+        self.delAllIndicator()
+        
         for indic in indicators:
             self.newIndicator(indicator=indic["indicator"], period=indic["period"],\
                 interval=indic["interval"])
@@ -153,6 +153,7 @@ class mktDataAnalysis():
         
     def indRSI(self, period=None, interval=None, start=None, end=None, int_unix=None):
         def calcData(data=None, kLines=None):
+            
             delta = data['close'].diff(1)
             delta.dropna(inplace=True)
             positive = delta.copy()
@@ -172,6 +173,7 @@ class mktDataAnalysis():
 
         data = getattr(self, interval)
         data = pd.DataFrame.from_dict(data["data"], orient='columns')
+        data["close"] = pd.to_numeric(data["close"])
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -265,17 +267,11 @@ class mktDataAnalysis():
         opData = int(opData)
         return opData, kLines
 
-    def actlDB(self, interval=None, start=None, end=None):
+    def actlDB(self):
         #TODO CHANGE HERE FOR PING 
-
-        if end == None:
-            today = datetime.datetime.now()
-            today = int(today.timestamp() * 1000)
-            end = today
-        data = self.getData.OCHLData(coin="BTC", pair="USDT", start=start, end=end, interval=interval)
-        interval = self._getIntvl(timeframe=interval)
-        with open(self.DBPath + "\{}.json".format(interval), 'w') as f:
-            json.dump(data, f, indent=2)
+        for intervalDB in self.dBIntervals:
+            lastData = getattr(self, intervalDB)["data"][-2:]
+        pass
     
     def openInd(self):
         for rooth_path, sub_path, files in os.walk(self.indicPath):
