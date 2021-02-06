@@ -3,6 +3,7 @@ sys.path.insert(0, r'')
 
 import json
 import os
+from tradingBot.exceptions import BadKwargs, SymbolNotSupported
 from tradingBot.mktDataModule.mktDataMessari import mktDataBaseMessari
 import datetime
 import numpy as np
@@ -13,7 +14,6 @@ import random
 
 class mktDataAnalysis():
     
-    getData = mktDataBaseMessari()
     paths = {"mainPath": "tradingBot\dataBase\{}\{}", "subPaths": [
         {"id": "indicators", "subPath": "\indicators"},
         {"id": "intervals", "subPath": "\intervals"}
@@ -29,13 +29,13 @@ class mktDataAnalysis():
         self.DBPath = mainPath + self.paths['subPaths'][1]["subPath"]
         self.getIndInterval = []
 
-        #TODO IF WE ELIMINATE ALL INDICATORS THEN WHY WE OPEN THEM HERE.
-        self.openInd()
-
         #TODO ACCESS THE ACTUALIZED DB FROM CB
         for nameDB in self.dBIntervals:
             setattr(self, nameDB, getattr(self.coinBotObj, nameDB))
         
+        #TODO IF WE ELIMINATE ALL INDICATORS THEN WHY WE OPEN THEM HERE.
+        self.openInd()
+
         for indic in indicators:
             self.newIndicator(indicator=indic["indicator"], period=indic["period"],\
                 interval=indic["interval"])
@@ -45,7 +45,7 @@ class mktDataAnalysis():
             return False 
 
         #TODO CHANGE NOT USE MESSARI
-        interval = self.getData._getIntvl(timeframe=interval)
+        interval = self._getIntvl(timeframe=interval)
         id = str(period) + indicator + interval        
         for indicFiles in self.getIndInterval:
             indicInterval = getattr(self, indicFiles["indicator_int"])
@@ -170,7 +170,7 @@ class mktDataAnalysis():
             actData = json.loads(actData.to_json(orient="records"))
             return actData[kLines:]
 
-        data = self.openDB(interval=interval)
+        data = getattr(self, interval)
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -192,7 +192,7 @@ class mktDataAnalysis():
             actData = json.loads(actData.to_json(orient="records"))
             return actData[kLines:]
 
-        data = self.openDB(interval=interval)
+        data = getattr(self, interval)
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -214,7 +214,7 @@ class mktDataAnalysis():
             actData = json.loads(actData.to_json(orient="records"))            
             return actData[kLines:]
 
-        data = self.openDB(interval=interval)
+        data = getattr(self, interval)
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -242,7 +242,7 @@ class mktDataAnalysis():
             return g  
 
         weights = list(reversed([(period - n) * period for n in range(period)]))
-        data = self.openDB(interval=interval)
+        data = getattr(self, interval)
         startDB = data.iloc[0]['timestamp']
         endDB = data.iloc[-1]['timestamp']        
         if int_unix == None or end > data.iloc[-1]['timestamp']:
@@ -269,15 +269,9 @@ class mktDataAnalysis():
             today = int(today.timestamp() * 1000)
             end = today
         data = self.getData.OCHLData(coin="BTC", pair="USDT", start=start, end=end, interval=interval)
-        interval = self.getData._getIntvl(timeframe=interval)
+        interval = self._getIntvl(timeframe=interval)
         with open(self.DBPath + "\{}.json".format(interval), 'w') as f:
             json.dump(data, f, indent=2)
-    
-    def openDB(self, interval=None):
-        with open(self.DBPath + "\{}.json".format(interval), 'r') as f:
-            data = json.load(f)
-        data = pd.DataFrame.from_dict(data["data"], orient='columns')
-        return data
     
     def openInd(self):
         for rooth_path, sub_path, files in os.walk(self.indicPath):
@@ -300,9 +294,8 @@ class mktDataAnalysis():
         flag = False
         bool1 = True
         newInd = {"indicators": []}
-        for rooth_path, sub_path, files in os.walk(self.DBPath):
-            for intervals in files:
-                if intervals[:-5] == interval: flag = True 
+        for intervals in self.dBIntervals:
+            if intervals == interval: flag = True 
         if flag:
             for intervals in self.getIndInterval:
                 if intervals["interval"] == interval: bool1 = False                 
@@ -325,8 +318,8 @@ class mktDataAnalysis():
             #color = (r, g, b) 
             color = colors[x]
             return color
-        interval = self.getData._getIntvl(timeframe=interval)
-        data = self.openDB(interval=interval)
+        interval = self._getIntvl(timeframe=interval)
+        data = getattr(self, interval)
         flag = False
         x = 0
         plt.figure(figsize=(12, 8))
@@ -372,6 +365,25 @@ class mktDataAnalysis():
             ax2.tick_params(axis="y", colors="white")
 
         plt.show()        
+
+    def _getIntvl(self, timeframe=None):
+
+        # @fn _getIntvl
+        # @brief Method that constructs in the correct way the interval needed for the API
+        # @param timeframe which time frame the data is to be obtained (e.g. (1, "min")//(1, "day"))
+        # @return interval constructed as a letter and the number (e.g., 1d = 1 day)
+
+        if not isinstance(timeframe, tuple):
+            
+            raise(BadKwargs("Time interval is not a Tuple"))
+
+        number, timeInterval = timeframe
+        if timeInterval[0] not in "mhwd":
+            
+            raise(BadKwargs("Time frame not in supported time frames"))
+        timeInterval = timeInterval[0]
+
+        return str(number) + timeInterval
 
 
 if __name__ == "__main__":
