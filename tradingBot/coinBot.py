@@ -33,8 +33,8 @@ class coinBotBase():
         # @fn __init__
         #@brief initialize object with instance veriables
         #@param coin coin to analyze
-        #@param pari pair to analyze
-        #@param counter objet of the counter class
+        #@param pair pair to analyze
+        #@param counter object of the counter class
         #@var dbPath path to the current db of instance
 
         self.coin = coin
@@ -63,19 +63,28 @@ class coinBotBase():
         self.queue = queue.Queue()
         self.counter.addObsv(self)
 
-        self._queueLoop()
+        self.__queueLoop()
 
-    def _queueLoop(self):
+    def __queueLoop(self):
+
+        ## 
+        #@fn __queueLoop
+        #@brief infinite loop that gets tasks on Queue
 
         while True:
             try:
                 tmstp = self.queue.get()[0]
-                self._handleTask(tmstp)
+                self.__handleTask(tmstp)
             except queue.Empty:
                 continue
             time.sleep(0.1)
 
-    def _handleTask(self, tmstp):
+    def __handleTask(self, tmstp):
+        
+        ## 
+        #@fn __handleTask
+        #@brief will actualize DB and Indicators
+        #@param tmstp current timestamp
 
         print("we got msg {} at tmstp {}".format(self.coin, tmstp))
         self._getCurPrice(tmstp)
@@ -85,6 +94,11 @@ class coinBotBase():
         print("INDICATORS ACTUALIZED")
     
     def _loadDbOCHL(self):
+        
+        ## 
+        #@fn _loadDbOCHL
+        #@brief loads all jsons' candles DB
+     
         #TODO LOAD ONLY OCHL DATA JSONS AND NOTHING MORE
         filenames = [candlesFiles for _, _, candlesFiles in os.walk(self.dbPath)][0]
         for fileInterval in filenames:
@@ -102,19 +116,39 @@ class coinBotBase():
                 self.listOfTmstp[tmfrm] += [candle["timestamp"]]
                     
     def _saveOCHL(self, intvlDb):
+
+        ## 
+        #@fn _saveOCHL
+        #@brief save the actualized DB in jsons
+        #@param intvDb name of interval to save
+
         currDb = getattr(self, intvlDb)
         with open(os.path.join(self.dbPath, intvlDb + ".json"), "w") as f:
             json.dump(currDb, f, indent=2)
 
-    def _getIntvl(self, interval):
+    def __getIntvl(self, interval):
         
+        ## 
+        #@fn __getIntvl
+        #@brief format the interval
+        #@param interval interval name
+        #@return interval formated interval
+
         interval = re.findall(r'[A-Za-z]+|\d+', interval)
         interval = (int(interval[0]), interval[1].lower()) 
         return interval
 
     def _getOCHL(self, interval, start=None, end=None):
 
-        reqInterval = self._getIntvl(interval)
+        ## 
+        #@fn _getOCHL
+        #@brief get OCHL data from Binance API
+        #@param interval interval name
+        #@param start starting timestamp
+        #@param end last timestamp
+        #@return boolean 
+        
+        reqInterval = self.__getIntvl(interval)
         currDB = getattr(self, interval)
         if not start:
             start = currDB["end"]
@@ -136,19 +170,26 @@ class coinBotBase():
             return True
 
     def _missCandles(self, tmstp, interval):
+        
+        ## 
+        #@fn _missCandles
+        #@brief get the number of missing candles since timestamp
+        #@param tmstp timestamp to compare to
+        #@param interval interval name
+        #@return latestTmstp last available timestamp
+        #@return misCandles int of missing candles
+
         latestTmstp = max(self.listOfTmstp[interval])
         misCandles = int((tmstp - latestTmstp) / 1000) / self.intervals[interval]
         return latestTmstp, misCandles
 
-    def _updateTmstpKeys(self, tmstp, interval):
-
-        latestTmstp, misCandles = self._missCandles(tmstp, interval)
-        for _ in range(int(misCandles)):
-            newKey = latestTmstp + self.intervals[interval] * 1000
-            latestTmstp = newKey
-            self.listOfTmstp[interval] += latestTmstp
-
     def _getCurData(self):
+
+        ## 
+        #@fn _getCurData
+        #@brief get the current price of coin with binanceAPI
+        #@return data dictionary of 1m candle price
+
         varName = (self.coin + self.pair + "OCHL").lower()
         if hasattr(self.binApi, varName):
             data = getattr(self.binApi, varName)
@@ -158,7 +199,15 @@ class coinBotBase():
         return data
 
     def _getCurPrice(self, tmstp):
-        #data = self.mktDataCoincap.getCurData(coin=self.coin, pair=self.pair)
+        
+        ## 
+        #@fn _getCurPrice
+        #@brief form and update the DB with current prices
+        #This method will update all missing candles through _getOCHL method
+        #Then will update the current candle price and volume
+        #Once a new candle is produced, the method updates the candle with _getOCHL method
+        #@param tmstp actual timestamp 
+
         data = self._getCurData()
         if not data:
             return
@@ -221,38 +270,65 @@ class coinBot(coinBotBase):
 
 
 class counter():
+    
     ##  
     #@class counter 
     #@brief the object that gets the current UNIX timestamp
-    #@var _tmstp
+    #@var __tmstp
     #variable that contains the current tmstp, this is the observed val
     #@var _observers
     #List containing all the observers subscribed
 
-    _tmstp = 0
+    __tmstp = 0
     _observers = []
 
     def __init__(self, interval):
         
+        ## 
+        #@fn __init__
+        #@brief constructs class and starts counter
+        #@param interval int indicating trigger time in seconds
+
         self.intvl = interval
         self.lock = threading.RLock()
         thread = threading.Thread(target=self._start, daemon=True)
         thread.start()
 
     def addObsv(self, Object):
+        
+        ## 
+        #@fn addObsv
+        #@brief add to _observers list an Object instance
+        #@param Object object instance to be notified
+
         with self.lock:
             self._observers.append(Object)
 
     def rmvObsv(self, Object):
+
+        ## 
+        #@fn rmvObsv
+        #@brief remove from _observers list an Object instance
+        #@param Object object instance to be removed
+
         with self.lock:
             self._observers.remove(Object)
 
     def _notify(self):
+
+        ## 
+        #@fn _notify
+        #@brief ping to all object in _observers list
+        
         with self.lock:
             for obsv in self._observers:
-                obsv.queue.put([self._tmstp])
+                obsv.queue.put([self.__tmstp])
 
     def _start(self):
+
+        ## 
+        #@fn _start
+        #@brief create infinite counter loop
         
         while True:
             tmstp = self.__synchronize()
@@ -260,6 +336,15 @@ class counter():
             time.sleep(1)
 
     def __synchronize(self):
+
+        ## 
+        #@fn __synchronize
+        #@brief synchronize count to computer clock
+        #each self.intvl must be sincrhonized with the computer clock
+        #example: if invl is 10, only at 19:10:10, 19:10:20 will the trigger
+        #occur
+        #@return tmstp timestamp of trigger
+
         tmstp = self.__getTmstp()
         while int(tmstp / 1000) % (self.intvl) != 0:
             tmstp = self.__getTmstp()
@@ -267,11 +352,21 @@ class counter():
         return tmstp
 
     def __getTmstp(self):
+
+        ## 
+        #@fn __getTmstp
+        #@brief get the actual timestamp
+
         tmstp = int(time.time()) * 1000
         return tmstp 
 
     def __setTmstp(self, tmstp):
-        self._tmstp = tmstp
+
+        ## 
+        #@fn __setTmstp
+        #@brief set the tmstp attribute and _notify method
+
+        self.__tmstp = tmstp
         self._notify()
         return None
     
