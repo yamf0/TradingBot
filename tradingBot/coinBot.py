@@ -16,6 +16,7 @@ sys.path.insert(0, r'')
 
 from tradingBot.binance.binanceModule import binanceAPI
 from tradingBot.mktAnalysis.mktDataAnalysis import mktDataAnalysis
+from tradingBot.mktStrategy.mktStrategy import mktStrategy
 
 
 class coinBotBase():
@@ -60,6 +61,8 @@ class coinBotBase():
         self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBotObj=self,
                                            indicators=self.indicators)
 
+        self.mktStrategy = mktStrategy(coin=None, pair=None, coinBotObj=self, 
+                                   dataAnalysisObj=self.mktAnalysis)
         self.queue = queue.Queue()
         self.counter.addObsv(self)
 
@@ -83,6 +86,8 @@ class coinBotBase():
         self.mktAnalysis.actlDB()
         self.mktAnalysis.actlIndicators()
         print("INDICATORS ACTUALIZED")
+        self.mktStrategy.test()
+        print("Test successfull")
     
     def _loadDbOCHL(self):
         #TODO LOAD ONLY OCHL DATA JSONS AND NOTHING MORE

@@ -1,10 +1,13 @@
+# @package mktDataAnalysis
+# mktDataAnalysis class in charge of creating the needed indicators using the market data 
+# @author Angel Avalos
+
 import sys
 sys.path.insert(0, r'')
 
 import json
 import os
 from tradingBot.exceptions import BadKwargs, SymbolNotSupported
-from tradingBot.mktDataModule.mktDataMessari import mktDataBaseMessari
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,6 +16,9 @@ import random
 
 
 class mktDataAnalysis():
+    
+    ## mktDataAnalysis
+    # @class mktDataAnalysis
     
     paths = {"mainPath": "tradingBot\dataBase\{}\{}", "subPaths": [
         {"id": "indicators", "subPath": "\indicators"},
@@ -41,6 +47,15 @@ class mktDataAnalysis():
                 interval=indic["interval"])
 
     def newIndicator(self, indicator=None, period=None, interval=None):
+
+        # @fn newIndicator
+        # @brief 
+        # @param indicator
+        # @param period
+        # @param interval
+        # @exception 
+        # @return 
+
         if not isinstance(period, int):
             return False 
 
@@ -78,6 +93,13 @@ class mktDataAnalysis():
         self.closeInd()      
 
     def delIndicator(self, id=None):
+
+        # @fn delIndicator
+        # @brief 
+        # @param id
+        # @exception 
+        # @return 
+
         for indicFiles in self.getIndInterval:
             newInd = {"indicators": []}
             indicInterval = getattr(self, indicFiles["indicator_int"])
@@ -88,12 +110,26 @@ class mktDataAnalysis():
         self.closeInd()                     
 
     def delAllIndicator(self):
+
+        # @fn delAllIndicator
+        # @brief 
+        # @param
+        # @exception 
+        # @return 
+
         for indicFiles in self.getIndInterval:
             newInd = {"indicators": []}
             setattr(self, indicFiles["indicator_int"], newInd)
         self.closeInd() 
 
     def actlIndicators(self):
+
+        # @fn actlIndicators
+        # @brief 
+        # @param
+        # @exception 
+        # @return 
+
         for indicFiles in self.getIndInterval:
             newInd = {"indicators": []}
             indicInterval = getattr(self, indicFiles["indicator_int"])
@@ -122,6 +158,18 @@ class mktDataAnalysis():
         self.closeInd()  
 
     def actlIndData(self, indicator=None, period=None, interval=None, start=None, end=None, int_unix=None):
+
+        # @fn actlIndicators
+        # @brief 
+        # @param indicator
+        # @param period
+        # @param interval
+        # @param start
+        # @param end
+        # @param int_unix
+        # @exception 
+        # @return data
+
         if "EMA" == indicator:
             data = self.indEMA(period=period, interval=interval, start=start, end=end, int_unix=int_unix)
         elif "RSI" == indicator:
@@ -135,6 +183,13 @@ class mktDataAnalysis():
         return data
     
     def viewIndicators(self):
+
+        # @fn viewIndicators
+        # @brief 
+        # @param 
+        # @exception 
+        # @return 
+
         indica = {"indicators": []}
         for indicFiles in self.getIndInterval:
             indicInterval = getattr(self, indicFiles["indicator_int"])
@@ -152,7 +207,25 @@ class mktDataAnalysis():
         print(data.to_string(index=False))
         
     def indRSI(self, period=None, interval=None, start=None, end=None, int_unix=None):
+
+        # @fn indRSI
+        # @brief 
+        # @param period
+        # @param interval
+        # @param start
+        # @param end
+        # @param int_unix
+        # @exception 
+        # @return actData
+
         def calcData(data=None, kLines=None):
+
+            # @fn calcData
+            # @brief 
+            # @param data
+            # @param kLines
+            # @exception 
+            # @return actData
             
             delta = data['close'].diff(1)
             delta.dropna(inplace=True)
@@ -186,7 +259,26 @@ class mktDataAnalysis():
         return actData
 
     def indEMA(self, period=None, interval=None, start=None, end=None, int_unix=None):
+
+        # @fn indEMA
+        # @brief 
+        # @param period
+        # @param interval
+        # @param start
+        # @param end
+        # @param int_unix
+        # @exception 
+        # @return actData
+
         def calcData(data=None, kLines=None):
+
+        # @fn calcData
+        # @brief 
+        # @param data
+        # @param kLines
+        # @exception 
+        # @return actData
+
             ema = data['close'].ewm(span=period).mean()
             
             actData = pd.DataFrame()
@@ -209,7 +301,26 @@ class mktDataAnalysis():
         return actData
 
     def indSMA(self, period=None, interval=None, start=None, end=None, int_unix=None):
+
+        # @fn indSMA
+        # @brief 
+        # @param period
+        # @param interval
+        # @param start
+        # @param end
+        # @param int_unix
+        # @exception 
+        # @return actData
+
         def calcData(data=None, kLines=None):
+
+            # @fn calcData
+            # @brief 
+            # @param data
+            # @param kLines
+            # @exception 
+            # @return actData
+
             sma = data['close'].rolling(window=period).mean()
             
             actData = pd.DataFrame()
@@ -232,7 +343,26 @@ class mktDataAnalysis():
         return actData
 
     def indWMA(self, period=None, interval=None, start=None, end=None, int_unix=None):
+
+        # @fn indWMA
+        # @brief 
+        # @param period
+        # @param interval
+        # @param start
+        # @param end
+        # @param int_unix
+        # @exception 
+        # @return actData
+
         def calcData(data=None, kLines=None):
+
+            # @fn calcData
+            # @brief 
+            # @param data
+            # @param kLines
+            # @exception 
+            # @return actData
+
             wma = data['close'].rolling(window=period).apply(wma_calc(weights), raw=True)
 
             actData = pd.DataFrame()
@@ -242,7 +372,21 @@ class mktDataAnalysis():
             return actData[kLines:]
 
         def wma_calc(w):
+
+            # @fn wma_calc
+            # @brief 
+            # @param w
+            # @exception 
+            # @return g
+
             def g(x):
+
+                # @fn g
+                # @brief 
+                # @param x
+                # @exception 
+                # @return 
+
                 return sum(w * x) / sum(w)
             return g  
 
@@ -261,6 +405,17 @@ class mktDataAnalysis():
         return actData
     
     def checkLen(self, period=None, end=None, endDB=None, int_unix=None):
+
+        # @fn checkLen
+        # @brief 
+        # @param period
+        # @param end
+        # @param endDB
+        # @param int_unix
+        # @exception 
+        # @return opData
+        # @return kLines
+
         kLines = -((endDB - end) / int_unix)
         opData = kLines - period - 1   
         kLines = int(kLines)
@@ -268,12 +423,26 @@ class mktDataAnalysis():
         return opData, kLines
 
     def actlDB(self):
+
+        # @fn actlDB
+        # @brief 
+        # @param 
+        # @exception 
+        # @return 
+
         #TODO CHANGE HERE FOR PING 
         for intervalDB in self.dBIntervals:
             lastData = getattr(self, intervalDB)["data"][-2:]
         pass
     
     def openInd(self):
+
+        # @fn openInd
+        # @brief 
+        # @param 
+        # @exception 
+        # @return 
+
         for rooth_path, sub_path, files in os.walk(self.indicPath):
             for indicFiles in files:
                 indic = self.indicPath + "\{}".format(indicFiles)
@@ -284,6 +453,13 @@ class mktDataAnalysis():
                 self.getIndInterval.append(getIndic)
 
     def closeInd(self):
+
+        # @fn closeInd
+        # @brief 
+        # @param 
+        # @exception 
+        # @return 
+
         for indicFiles in self.getIndInterval:
             indic = self.indicPath + "\{}".format(indicFiles["path"])
             indicInterval = getattr(self, indicFiles["indicator_int"])
@@ -291,6 +467,13 @@ class mktDataAnalysis():
                 json.dump(indicInterval, f, indent=1) 
     
     def checkIntDB(self, interval=None):
+
+        # @fn checkIntDB
+        # @brief 
+        # @param interval
+        # @exception 
+        # @return 
+
         flag = False
         bool1 = True
         newInd = {"indicators": []}
@@ -309,7 +492,21 @@ class mktDataAnalysis():
         else: return True
 
     def printGraph(self, interval=None):
+
+        # @fn printGraph
+        # @brief 
+        # @param interval
+        # @exception 
+        # @return 
+
         def randColor(x):
+
+            # @fn randColor
+            # @brief 
+            # @param x
+            # @exception 
+            # @return color
+
             colors = ("red", "blue", "green", "orange", "yellow", "pink", "olive", \
                 "brown", "lime", "crimson", "aqua", "powderblue", "palegreen")
             #r = random.random() 
