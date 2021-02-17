@@ -1,0 +1,12 @@
+[
+    {
+        "coin" : "BTC",
+        "pair" : "USDT",
+        "strategy" : 0
+    },
+    {
+        "coin" : "ETH",
+        "pair" : "USDT",
+        "strategy" : 1
+    }
+]
