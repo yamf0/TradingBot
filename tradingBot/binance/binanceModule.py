@@ -256,7 +256,6 @@ class binanceBaseAPI():
             self.startMultiSocket(binSocket, streams)
 
 
-
 class binanceAPI(binanceBaseAPI):
 
     def __init__(self):

@@ -5,3 +5,5 @@ symbolMap = {"crypto": [
     "fiat": [
     {"symbol": "USDT", "name": "us dollars", "id": "tether"}
 ]}
+
+
