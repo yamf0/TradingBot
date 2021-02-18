@@ -17,10 +17,10 @@ sys.path.insert(0, r'')
 #TODO CLEAN THE IMPORT OF BINANCE
 from tradingBot.binance.binanceModule import binanceAPI
 from tradingBot.mktAnalysis.mktDataAnalysis import mktDataAnalysis
-from tradingBot.resources.helpers import counter
+from tradingBot.resources.helpers import counter, counterObserverINF
 
 
-class coinBotBase():
+class coinBotBase(counterObserverINF):
     
     ## coinBotBase
     # @brief contains the Base class for coinBot
@@ -57,17 +57,28 @@ class coinBotBase():
         self._loadDbOCHL()
         #Check if data is updated
         self._getCurPrice(int(time.time() * 1000))
-                
+
         #Create MKT ANALYSIS
         self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBotObj=self,
                                            indicators=self.indicators)
+        self._createQueue()
+        self._counterSubscribe()
+        
+        self._queueLoop()
+    
+    def _createQueue(self):
 
         self.queue = queue.Queue()
+
+    def _counterSubscribe(self):
+
         self.counter.addObsv(self)
 
-        self.__queueLoop()
+    def _counterUnsubscribe(self):
+        
+        self.counter.rmvObsv(self)
 
-    def __queueLoop(self):
+    def _queueLoop(self):
 
         ## 
         #@fn __queueLoop
@@ -75,25 +86,26 @@ class coinBotBase():
 
         while True:
             try:
-                tmstp = self.queue.get()[0]
-                self.__handleTask(tmstp)
+                task = self.queue.get()
+                self._handleTask(task)
             except queue.Empty:
                 continue
             time.sleep(0.1)
 
-    def __handleTask(self, tmstp):
+    def _handleTask(self, task):
         
         ## 
         #@fn __handleTask
         #@brief will actualize DB and Indicators
         #@param tmstp current timestamp
-
-        print("we got msg {} at tmstp {}".format(self.coin, tmstp))
-        self._getCurPrice(tmstp)
-        #TODO SEND ACT INDICATORS
-        self.mktAnalysis.actlDB()
-        self.mktAnalysis.actlIndicators()
-        print("INDICATORS ACTUALIZED")
+        if task[0] == "TimeTrigger":
+            tmstp = task[1]
+            print("we got msg {} at tmstp {}".format(self.coin, tmstp))
+            self._getCurPrice(tmstp)
+            #TODO SEND ACT INDICATORS
+            self.mktAnalysis.actlDB()
+            self.mktAnalysis.actlIndicators()
+            print("INDICATORS ACTUALIZED")
     
     def _loadDbOCHL(self):
         

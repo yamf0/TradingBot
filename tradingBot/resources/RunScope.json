@@ -7,6 +7,6 @@
     {
         "coin" : "ETH",
         "pair" : "USDT",
-        "strategy" : 1
+        "strategy" : [1,2,3,4]
     }
 ]
