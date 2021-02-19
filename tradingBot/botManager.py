@@ -27,11 +27,12 @@ class botManager(counterObserverINF):
         #initialize counter
         self.counter = counter(10)
 
-        #create Binance conn
-        self._binanceConn()
-
         #Load Run Scope        
         self.scope = self._loadRunScope()
+
+        #create Binance conn
+        self._binanceConn()
+        self._actStreams()
         
         #TODO HERE INITIALIZE THE COUNTER AND CREATE THE BINANCE OBJECT
 
@@ -43,14 +44,26 @@ class botManager(counterObserverINF):
 
     def _createQueue(self):
 
+        ##
+        #@fn _createQueue
+        #@brief creates the Queue for the class
+
         self.queue = queue.Queue()
 
     def _counterSubscribe(self):
+
+        ##
+        #@fn _counterSubscribe
+        #@brief Subscribes to notification by Counter Obj
 
         self.counter.addObsv(self)
 
     def _counterUnsubscribe(self):
 
+        ##
+        #@fn _counterUnsubscribe
+        #@brief unsubscribes to notification by Counter Obj
+        
         self.counter.rmvObsv(self)
 
     def _queueLoop(self):
@@ -62,6 +75,7 @@ class botManager(counterObserverINF):
         while True:
             try:
                 task = self.queue.get()
+                self._handleTask(task)
             except queue.Empty:
                 continue
             time.sleep(0.1)
@@ -102,7 +116,7 @@ class botManager(counterObserverINF):
         else:
             sortedScope = sorted(self.scope, key=lambda k: (k["coin"], k["pair"]))
             sortedNewScope = sorted(newScope, key=lambda k: (k["coin"], k["pair"]))
-            #self.scope = newScope
+            self.scope = newScope
             #changes???
             return True
 

@@ -31,6 +31,8 @@ class binanceBaseAPI():
         keyPath = os.path.join(self._rPath, "tradingBot", "access_keys", "API_KEY.json")
         key, secret = self.__importKey(keyPath)
         self.client = self._mkClient(key, secret)
+        
+        self._multiSocketRunning = False
 
     def __importKey(self, path):
         with open(path, "r") as f:
@@ -197,6 +199,25 @@ class binanceBaseAPI():
         conn_key = binSocket.start_kline_socket(symbol, self.__processSocketMsg, interval=KLINE_INTERVAL_1MINUTE)
         binSocket.start()
     
+    def _formatStreams(self, streams):
+        res = []
+        for stream in streams:
+            try:
+                self._checkCond(coin=stream["coin"], pair=stream["pair"])
+            except SymbolNotSupported:
+                print("Symbol is not supported, stream {} invalid".format(stream))
+                continue
+
+            symbol = self.__coinPair2Symbol(stream["coin"], stream["pair"])
+                
+            res.append(symbol + "@" + "kline_" + "1m")
+
+            varName = (stream["coin"] + stream["pair"] + "OCHL").lower()
+            setattr(self, varName, {})
+            self._OCHLdict[res[-1]] = varName
+        return res
+
+    @DeprecationWarning
     def __formatStreams(self, streams):
 
         res = []
@@ -236,19 +257,24 @@ class binanceBaseAPI():
 
     def startMultiSocket(self, binSocket, streams):
 
-        streams = self.__formatStreams(streams)
         conn_key = binSocket.start_multiplex_socket(streams, self.__processMultiSocketMsg)
-        self.__multiStreamConnKey = conn_key
-        binSocket.start()
+        self._multiStreamConnKey = conn_key
+        if self._multiSocketRunning:
+            return
+        else:
+            binSocket.start()
+            self._multiSocketRunning = True
 
     def stopMultiSocket(self, binSocket):
         
-        binSocket.stop_socket(self.__multiStreamConnKey)
-        delattr(self, "__multiStreamConnKey")
+        binSocket.stop_socket(self._multiStreamConnKey)
+        delattr(self, "_multiStreamConnKey")
     
     def actualizeMultiSocket(self, binSocket, streams):
 
-        if hasattr(self, "__multiStreamConnKey"):
+        streams = self._formatStreams(streams)
+        
+        if hasattr(self, "_multiStreamConnKey"):
             self.stopMultiSocket(binSocket)
             self.startMultiSocket(binSocket, streams)
         
