@@ -68,13 +68,25 @@ class coinBotBase(counterObserverINF):
     
     def _createQueue(self):
 
+        ##
+        #@fn _createQueue
+        #@brief creates the Queue for the class
+
         self.queue = queue.Queue()
 
     def _counterSubscribe(self):
 
+        ##
+        #@fn _counterSubscribe
+        #@brief Subscribes to notification by Counter Obj
+
         self.counter.addObsv(self)
 
     def _counterUnsubscribe(self):
+
+        ##
+        #@fn _counterUnsubscribe
+        #@brief unsubscribes to notification by Counter Obj
         
         self.counter.rmvObsv(self)
 
