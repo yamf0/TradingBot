@@ -8,6 +8,7 @@ import json
 import threading
 import queue
 import time
+import multiprocessing
 
 import sys
 sys.path.insert(0, r'')
@@ -20,7 +21,11 @@ from tradingBot.resources.helpers import counter, counterObserverINF
 class botManager(counterObserverINF):
 
     ## botManager
-    # @brief is the initializer of all intances required to function
+    #@brief is the initializer of all intances required to function
+    #@var CBmap map of all coinbots in run
+
+    #CBmap = [{"ID": None, "PID": None}]
+    CBmap = []
 
     def __init__(self):
         
@@ -33,6 +38,9 @@ class botManager(counterObserverINF):
         #create Binance conn
         self._binanceConn()
         self._actStreams()
+
+        #set CB
+        self._actCoinBots()
         
         #TODO HERE INITIALIZE THE COUNTER AND CREATE THE BINANCE OBJECT
 
@@ -84,8 +92,8 @@ class botManager(counterObserverINF):
         
         #When counter triggers check Scope
         if task[0] == "TimeTrigger":
-            newScope = self._actScope()
-            if newScope:
+            flagNewScope = self._actScope()
+            if flagNewScope:
                 self._actStreams()
             else: 
                 return
@@ -106,6 +114,13 @@ class botManager(counterObserverINF):
         self.binanceObj.actualizeMultiSocket(self.binanceObjSocket, self.scope)
 
     def _actCoinBots(self):
+
+        for scope in self.scope:
+            #check if CB exists
+            if scope["coin"] + scope["pair"] not in [CB["ID"] for CB in self.CBmap]:
+
+                self.CBmap.append({"ID": scope["coin"] + scope["pair"], "Strategy": scope["strategy"]})
+
         pass
 
     def _actScope(self):
@@ -116,10 +131,17 @@ class botManager(counterObserverINF):
         else:
             sortedScope = sorted(self.scope, key=lambda k: (k["coin"], k["pair"]))
             sortedNewScope = sorted(newScope, key=lambda k: (k["coin"], k["pair"]))
-            self.scope = newScope
-            #changes???
-            return True
 
+            #Get the differences in dicts
+            newCoins = [dic for dic in newScope if dic not in self.scope]
+            delCoins = [dic for dic in self.scope if dic not in newScope]
+            pairs = list(zip(sorted(delCoins, key=lambda k: k["coin"]), sorted(newCoins, key=lambda k: k["coin"])))
+            changedCoins = [x for x, y in pairs if x != y]
+
+            self.scope = newScope
+
+            return True
+    
     def addCB(self):
         pass
         #TODO HERE ADD A NEW CB
@@ -134,16 +156,6 @@ if __name__ == "__main__":
 
     botManager = botManager()
 
-    bAPI = binanceAPI()
-    socket = bAPI.con2Socket()
-    streams = [{"coin": "BTC", "pair": "USDT", "type": "OCHL", "interval": (1, "m")}]
-    bAPI.multiSocket(socket, streams)
-    print(os.getcwd())
+    
 
-    indicators = [{"indicator": "EMA", "period": 14, "interval": (1, "d")},
-                  {"indicator": "EMA", "period": 14, "interval": (1, "h")},
-                  {"indicator": "SMA", "period": 14, "interval": (1, "h")},
-                  {"indicator": "WMA", "period": 14, "interval": (1, "h")},
-                  {"indicator": "RSI", "period": 14, "interval": (1, "h")}]
-    coinBot("BTC", "USDT", counter, bAPI, indicators=indicators)
        
