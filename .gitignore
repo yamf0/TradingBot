@@ -2,7 +2,7 @@
 venv/*
 docs/*
 .vscode/*
-*/indicators/*
-*/intervals/*
+**/indicators/*
+**/intervals/*
 
 **/__pycache__/
