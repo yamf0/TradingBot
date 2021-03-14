@@ -18,15 +18,16 @@ sys.path.insert(0, r'')
 from tradingBot.binance.binanceModule import binanceAPI
 from tradingBot.mktAnalysis.mktDataAnalysis import mktDataAnalysis
 from tradingBot.mktStrategy.mktStrategy import mktStrategy
-from tradingBot.resources.helpers import counter
+from tradingBot.resources.helpers import counter, counterObserverINF
 
 
-class coinBotBase():
+class coinBotBase(counterObserverINF):
     
     ## coinBotBase
     # @brief contains the Base class for coinBot
     # @var rPath path relative for TradinBot main folder
     rPath = os.getcwd()
+    
     intervals = {"5m": 300, "15m": 900,
                           "30m": 1800, "1h": 3600, "2h": 7200, "1d": 86400}
 
@@ -42,9 +43,22 @@ class coinBotBase():
 
         self.coin = coin
         self.pair = pair
+        self.strategiesIndic = []
         self.counter = counter
         self.indicators = indicators
+        self.runScPath = os.path.join(self.rPath, "tradingBot", \
+            "resources", "RunScope.json")
+        self.strPath = os.path.join(self.rPath, "tradingBot", \
+            "resources", "strategies.json")
 
+        #Open resources
+        with open(self.runScPath, 'r') as f:
+            self.RunScope = json.load(f)
+        with open(self.strPath, 'r') as f:
+            self.strategies = json.load(f)
+        self.RunScope = self.RunScope['Scope']
+        self.strategies = self.strategies['Strategies']
+        
         #API objects
         self.binApi = binanceAPI
 
@@ -58,19 +72,76 @@ class coinBotBase():
         self._loadDbOCHL()
         #Check if data is updated
         self._getCurPrice(int(time.time() * 1000))
-                
+
+        #Define the strategies that are needed
+        for line in self.RunScope:
+            if line["coin"] == self.coin and line["pair"] == self.pair:
+                self.desiredStr = line["strategy"]
+
+        for line in self.strategies:
+            if line["strategy"] in self.desiredStr:
+                for indic in line['indicators']:
+                    self.strategiesIndic.append(indic)
+
         #Create MKT ANALYSIS
-        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBotObj=self,
-                                           indicators=self.indicators)
+        self.mktAnalysis = mktDataAnalysis(coin=coin, pair=pair, coinBotObj=self, \
+            indicators=self.strategiesIndic)   
+
+        self._createQueue()
+        self._counterSubscribe()
+        self._queueLoop()
+    
+    def checkScope(self):
+        with open(self.runScPath, 'r') as f:
+            self.RunScope = json.load(f)
+        with open(self.strPath, 'r') as f:
+            self.strategies = json.load(f)
+        self.RunScope = self.RunScope['Scope']
+        self.strategies = self.strategies['Strategies']    
+        for line in self.RunScope:
+            if line["coin"] == self.coin and line["pair"] == self.pair:
+                desiredStr_1 = line["strategy"]       
+        if self.desiredStr != desiredStr_1:
+            self.strategiesIndic = []
+            self.desiredStr = desiredStr_1
+            self.mktAnalysis.delAllIndicator()
+            for line in self.strategies:
+                if line["strategy"] in self.desiredStr:
+                    for indic in line['indicators']:
+                        self.strategiesIndic.append(indic)  
+            for indic in self.strategiesIndic:
+                self.mktAnalysis.newIndicator(indicator=indic["indicator"], period=indic["period"],\
+                    interval=indic["interval"])
+            return False
+        return True
+
+    def _createQueue(self):
+
+        ##
+        #@fn _createQueue
+        #@brief creates the Queue for the class
 
         self.mktStrategy = mktStrategy(coin=None, pair=None, coinBotObj=self, 
                                    dataAnalysisObj=self.mktAnalysis)
         self.queue = queue.Queue()
+
+    def _counterSubscribe(self):
+
+        ##
+        #@fn _counterSubscribe
+        #@brief Subscribes to notification by Counter Obj
+
         self.counter.addObsv(self)
 
-        self.__queueLoop()
+    def _counterUnsubscribe(self):
 
-    def __queueLoop(self):
+        ##
+        #@fn _counterUnsubscribe
+        #@brief unsubscribes to notification by Counter Obj
+        
+        self.counter.rmvObsv(self)
+
+    def _queueLoop(self):
 
         ## 
         #@fn __queueLoop
@@ -78,27 +149,28 @@ class coinBotBase():
 
         while True:
             try:
-                tmstp = self.queue.get()[0]
-                self.__handleTask(tmstp)
+                task = self.queue.get()
+                self._handleTask(task)
             except queue.Empty:
                 continue
             time.sleep(0.1)
 
-    def __handleTask(self, tmstp):
+    def _handleTask(self, task):
         
         ## 
         #@fn __handleTask
         #@brief will actualize DB and Indicators
         #@param tmstp current timestamp
-
-        print("we got msg {} at tmstp {}".format(self.coin, tmstp))
-        self._getCurPrice(tmstp)
-        #TODO SEND ACT INDICATORS
-        self.mktAnalysis.actlDB()
-        self.mktAnalysis.actlIndicators()
-        print("INDICATORS ACTUALIZED")
-        self.mktStrategy.test()
-        print("Test successfull")
+        if task[0] == "TimeTrigger":
+            tmstp = task[1]
+            print("we got msg {} at tmstp {}".format(self.coin, tmstp))
+            self._getCurPrice(tmstp)
+            #TODO SEND ACT INDICATORS
+            self.mktAnalysis.actlDB()
+            if self.checkScope():
+                self.mktAnalysis.actlIndicators()
+            print("INDICATORS ACTUALIZED")
+            self.mktStrategy.test()
     
     def _loadDbOCHL(self):
         
@@ -283,11 +355,4 @@ if __name__ == "__main__":
     bAPI.multiSocket(socket, streams)
     print(os.getcwd())
     counter = counter(10)
-    indicators = [{"indicator": "EMA", "period": 14, "interval": (1, "d")},
-                  {"indicator": "EMA", "period": 14, "interval": (1, "h")},
-                  {"indicator": "SMA", "period": 14, "interval": (1, "h")},
-                  {"indicator": "WMA", "period": 14, "interval": (1, "h")},
-                  {"indicator": "RSI", "period": 14, "interval": (1, "h")}]
-    coinBot("BTC", "USDT", counter, bAPI, indicators=indicators)
-       
-
+    coinBot("BTC", "USDT", counter, bAPI)

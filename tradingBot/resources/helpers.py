@@ -5,6 +5,7 @@
 
 import threading
 import time
+import abc
 
 
 class counter():
@@ -60,7 +61,7 @@ class counter():
         
         with self.lock:
             for obsv in self._observers:
-                obsv.queue.put([self.__tmstp])
+                obsv.queue.put(["TimeTrigger", self.__tmstp])
 
     def _start(self):
 
@@ -107,3 +108,41 @@ class counter():
         self.__tmstp = tmstp
         self._notify()
         return None
+
+
+class counterObserverINF(abc.ABC):
+
+    # @class counterObserverINF
+    # Interface for all classes that subscribe to the counter class
+
+    @abc.abstractmethod
+    def _queueLoop(self):
+
+        # @fn __queueLoop
+        # Abstract method that loops for tasks
+
+        pass
+
+    @abc.abstractmethod
+    def _handleTask(self, task):
+
+        # @fn __handleTask
+        # Abstract method to handle task from queue
+        #@param task task to execute from queue
+
+        pass
+
+    @abc.abstractmethod
+    def _createQueue(self):
+
+        pass
+
+    @abc.abstractmethod
+    def _counterSubscribe(self):
+
+        pass
+
+    @abc.abstractmethod
+    def _counterUnsubscribe(self):
+
+        pass

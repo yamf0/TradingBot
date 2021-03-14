@@ -1,12 +1,23 @@
-[
+{"Scope": [
     {
         "coin" : "BTC",
         "pair" : "USDT",
-        "strategy" : 0
+        "strategy" : [0,3]
+    },
+    {
+        "coin" : "ETH",
+        "pair" : "BTC",
+        "strategy" : [1,2,3,4]
+    },
+    {
+        "coin" : "ADA",
+        "pair" : "BTC",
+        "strategy" : [1,2,3,4]
     },
     {
         "coin" : "ETH",
         "pair" : "USDT",
-        "strategy" : 1
+        "strategy" : [1,2,3,4]
     }
 ]
+}

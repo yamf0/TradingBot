@@ -1,0 +1,44 @@
+{"Strategies": [
+    {"strategy": 0, "indicators": [
+        {"indicator": "EMA", "period": 14, "interval": [1, "d"]},
+        {"indicator": "EMA", "period": 14, "interval": [1, "h"]},
+        {"indicator": "SMA", "period": 14, "interval": [1, "h"]},
+        {"indicator": "WMA", "period": 14, "interval": [1, "h"]},
+        {"indicator": "RSI", "period": 14, "interval": [1, "h"]}
+    ]}, 
+    {"strategy": 1, "indicators": [
+        {"indicator": "EMA", "period": 100, "interval": [1, "d"]},
+        {"indicator": "RSI", "period": 30, "interval": [1, "d"]},
+        {"indicator": "SMA", "period": 40, "interval": [1, "h"]},
+        {"indicator": "WMA", "period": 20, "interval": [1, "h"]},
+        {"indicator": "RSI", "period": 17, "interval": [1, "h"]}
+    ]},
+    {"strategy": 2, "indicators": [
+        {"indicator": "EMA", "period": 20, "interval": [1, "d"]},
+        {"indicator": "RSI", "period": 55, "interval": [1, "d"]},
+        {"indicator": "SMA", "period": 60, "interval": [1, "d"]},
+        {"indicator": "WMA", "period": 21, "interval": [1, "h"]},
+        {"indicator": "RSI", "period": 30, "interval": [1, "h"]}
+    ]},
+    {"strategy": 3, "indicators": [
+        {"indicator": "EMA", "period": 150, "interval": [1, "h"]},
+        {"indicator": "RSI", "period": 30, "interval": [1, "h"]},
+        {"indicator": "SMA", "period": 40, "interval": [1, "h"]},
+        {"indicator": "WMA", "period": 14, "interval": [1, "h"]}
+    ]},
+    {"strategy": 4, "indicators": [
+        {"indicator": "EMA", "period": 23, "interval": [1, "d"]},
+        {"indicator": "RSI", "period": 15, "interval": [1, "d"]},
+        {"indicator": "SMA", "period": 20, "interval": [1, "d"]},
+        {"indicator": "SMA", "period": 100, "interval": [1, "d"]},
+        {"indicator": "WMA", "period": 20, "interval": [1, "d"]}
+    ]},    
+    {"strategy": 5, "indicators": [
+        {"indicator": "EMA", "period": 100, "interval": [1, "d"]},
+        {"indicator": "RSI", "period": 20, "interval": [1, "d"]},
+        {"indicator": "SMA", "period": 10, "interval": [1, "d"]},
+        {"indicator": "WMA", "period": 50, "interval": [1, "d"]},
+        {"indicator": "RSI", "period": 27, "interval": [1, "h"]}
+    ]}
+]
+}

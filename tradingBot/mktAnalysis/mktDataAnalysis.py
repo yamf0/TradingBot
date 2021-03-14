@@ -40,6 +40,7 @@ class mktDataAnalysis():
             setattr(self, nameDB, getattr(self.coinBotObj, nameDB))
         
         #TODO IF WE ELIMINATE ALL INDICATORS THEN WHY WE OPEN THEM HERE.
+        self.openInd()
         self.delAllIndicator()
         
         for indic in indicators:
@@ -55,10 +56,10 @@ class mktDataAnalysis():
         # @param interval
         # @exception 
         # @return 
-
+          
         if not isinstance(period, int):
             return False 
-
+        
         #TODO CHANGE NOT USE MESSARI
         interval = self._getIntvl(timeframe=interval)
         id = str(period) + indicator + interval        
@@ -570,11 +571,13 @@ class mktDataAnalysis():
         # @brief Method that constructs in the correct way the interval needed for the API
         # @param timeframe which time frame the data is to be obtained (e.g. (1, "min")//(1, "day"))
         # @return interval constructed as a letter and the number (e.g., 1d = 1 day)
-
+        
+        """
         if not isinstance(timeframe, tuple):
             
             raise(BadKwargs("Time interval is not a Tuple"))
-
+        """
+        
         number, timeInterval = timeframe
         if timeInterval[0] not in "mhwd":
             

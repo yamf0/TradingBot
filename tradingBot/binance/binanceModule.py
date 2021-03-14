@@ -1,3 +1,4 @@
+  
 ## @package binance
 # binanceModule implementation for Binance API
 # @author Yael Martinez
@@ -234,26 +235,11 @@ class binanceBaseAPI():
 
         return res
 
-    def startMultiSocket(self, binSocket, streams):
+    def multiSocket(self, binSocket, streams):
 
         streams = self.__formatStreams(streams)
         conn_key = binSocket.start_multiplex_socket(streams, self.__processMultiSocketMsg)
-        self.__multiStreamConnKey = conn_key
         binSocket.start()
-
-    def stopMultiSocket(self, binSocket):
-        
-        binSocket.stop_socket(self.__multiStreamConnKey)
-        delattr(self, "__multiStreamConnKey")
-    
-    def actualizeMultiSocket(self, binSocket, streams):
-
-        if hasattr(self, "__multiStreamConnKey"):
-            self.stopMultiSocket(binSocket)
-            self.startMultiSocket(binSocket, streams)
-        
-        else:
-            self.startMultiSocket(binSocket, streams)
 
 
 class binanceAPI(binanceBaseAPI):
@@ -273,7 +259,7 @@ if __name__ == "__main__":
     streams = [{"coin": "BTC", "pair": "USDT", "type": "OCHL", "interval": (1, "m")},
     {"coin": "ETH", "pair": "USDT", "type": "OCHL", "interval": (1, "m")}]
 
-    bAPI.startMultiSocket(socket, streams)
+    bAPI.multiSocket(socket, streams)
     """dat = bAPI._getOCHLHist(coin="BTC", pair="USDT", interval=(1, "h"), start=1608390000000)
     print(dat)"""
 
